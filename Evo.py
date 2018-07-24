@@ -43,10 +43,11 @@ class Evolution():
 
             x = np.random.randint(0, 10*self.grid.shape[0])
             y = np.random.randint(0, 10*self.grid.shape[1])
+            print(x, y)
             color = np.random.randint(0, 255, 3)
             food_color = (255, 255, 255)
             size = STARTING_SIZE
-            self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0], self.grid.shape[1], color, food_color, size, net))
+            self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net))
     
     def _calculate_food_added(self, creature):
         x, y = creature.relative_x, creature.relative_y
@@ -74,6 +75,6 @@ class Evolution():
         
         net = Net(modified_weights)
         new_creature = Creature(modified_sensor1, modified_sensor2, modified_sensor3, 
-                                creature.relative_x, creature.relative_y, self.grid.shape[0], self.grid.shape[1], modified_color, 
+                                creature.relative_x, creature.relative_y, 10*self.grid.shape[0], 10*self.grid.shape[1], modified_color, 
                                 modified_food_color, 8, net)
         self.creatures.append(new_creature)

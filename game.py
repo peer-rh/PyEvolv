@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 from Creature import Creature
+import colorsys
 from CONSTANTS import *
 
 class Game:
@@ -70,7 +71,7 @@ class Game:
     
     def update_grid(self, new_grid):
         assert new_grid.shape == self.grid.shape
-        self.grid = grid 
+        self.grid = new_grid 
 
     def _grid_controller(self, events):
         for event in events:
@@ -106,14 +107,16 @@ class Game:
         pixels_per_relative = self.display_height / self.relatives_on_screen
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
-                pygame.draw.rect(gameDisplay, self.grid[x, y], (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
+                pygame.Color()
+                color = colorsys.hsv_to_rgb(self.grid[x, y, 0]/255, self.grid[x, y, 1]/255, self.grid[x, y, 2]/255)*255)
+                pygame.draw.rect(gameDisplay, colorsys.hsv_to_rgb(*self.grid[x, y]), (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
     def _display_creature(self, gameDisplay, creatures):
         pixels_per_relative = self.display_height / self.relatives_on_screen
 
         for creature in creatures:
             x, y, color, food_color, size, rotation, sensor_1, sensor_2, sensor_3 = creature()
-            if self.relative_x < x < self.relative_x + self.relatives_on_screen and self.relative_y < y < self.relative_y + self.relatives_on_screen:
+            if self.relative_x <= x <= self.relative_x + self.relatives_on_screen and self.relative_y <= y <= self.relative_y + self.relatives_on_screen:
                 size = int(size*pixels_per_relative)
                 surf_size = max(size, int(MAX_SENSOR_LENGTH*pixels_per_relative))
 
@@ -127,4 +130,5 @@ class Game:
                 pygame.draw.circle(creature_surf, color, (surf_size, surf_size), size)
                 pygame.draw.circle(creature_surf, food_color, (surf_size, surf_size- size//2), size//2)
                 creature_surf = pygame.transform.rotate(creature_surf, rotation)
+                creature_surf.get_rect().center = (x,y)
                 gameDisplay.blit(creature_surf, (x*pixels_per_relative - self.relative_x*pixels_per_relative - surf_size, y*pixels_per_relative - self.relative_y*pixels_per_relative - surf_size))

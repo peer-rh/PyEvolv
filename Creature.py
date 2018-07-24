@@ -44,8 +44,8 @@ class Creature:
 
             out = self.net(sensor_1, sensor_2, sensor_3, self.rotation, self.food) # out is forward_backward, left_right, rotation
             
-            self.relative_y = max(min(RELATIVES_CREATURE_MOVES_PER_STEP+self.relative_x, self.max_x), 0)
-            self.relative_x = max(min(RELATIVES_CREATURE_MOVES_PER_STEP+self.relative_y, self.max_y), 0)
+            self.relative_y = max(min(out[0]*RELATIVES_CREATURE_MOVES_PER_STEP+self.relative_x, self.max_x), 0)
+            self.relative_x = max(min(out[1]*RELATIVES_CREATURE_MOVES_PER_STEP+self.relative_y, self.max_y), 0)
             self.rotation = (self.rotation + out[2]*DEGREES_CREATURE_ROTATES_PER_STEP) % 360
             print(self, self.relative_x, self.relative_y, self.food)
             
@@ -56,10 +56,10 @@ class Creature:
             
             if self.food >= 20 and out[3] > 0:
                 self.get_child = True
-       # self._update_size()
+            self._update_size()
 
-    #def _update_size(self):
-    #    self.size = int(self.food*self.size_per_food)
+    def _update_size(self):
+        self.size = min(MAX_CREATURE_SIZE, int(self.food*self.size_per_food))
 
 
 

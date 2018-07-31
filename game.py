@@ -19,7 +19,7 @@ class Game:
         pygame.init()
 
         pygame.font.init()
-        self.myfont = pygame.font.SysFont('Arial', 20)
+        self.myfont = pygame.font.SysFont('Avenir', 20)
 
         self.clock = pygame.time.Clock()
 
@@ -62,15 +62,15 @@ class Game:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.relative_x_change = -1
+                    self.relative_x_change = -3
                 elif event.key == pygame.K_RIGHT:
-                    self.relative_x_change = 1
+                    self.relative_x_change = 3
                 
                 if event.key == pygame.K_DOWN:
-                    self.relative_y_change = 1
+                    self.relative_y_change = 3
             
                 elif event.key == pygame.K_UP:
-                    self.relative_y_change = -1
+                    self.relative_y_change = -3
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:

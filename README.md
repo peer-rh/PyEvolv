@@ -28,6 +28,6 @@ python grid_creator.py
 The file Constants.py contains some hyperparameters which can be tuned
 
 ## Sample Game
-This Game ended in the creatures failing to survive often they will survive
+This Game ended in the creatures failing to survive however often they will survive
 
 [![PyEvolv](https://img.youtube.com/vi/LZo5Hpl4gbI/0.jpg)](https://www.youtube.com/watch?v=LZo5Hpl4gbI)

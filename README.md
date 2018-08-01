@@ -31,5 +31,5 @@ The file Constants.py contains some hyperparameters which can be tuned
 This Game ended in the creatures failing to survive often they will survive
 
 <video width="320" height="240" controls>
-  <source src="PyEvolv.mp4" type="video/mp4">
+  <source src="./PyEvolv.mp4" type="video/mp4">
 </video>

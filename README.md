@@ -30,6 +30,4 @@ The file Constants.py contains some hyperparameters which can be tuned
 ## Sample Game
 This Game ended in the creatures failing to survive often they will survive
 
-<video width="320" height="240" controls>
-  <source src="./PyEvolv.mp4" type="video/mp4">
-</video>
+[![PyEvolv](https://img.youtube.com/vi/LZo5Hpl4gbI/0.jpg)](https://www.youtube.com/watch?v=LZo5Hpl4gbI)

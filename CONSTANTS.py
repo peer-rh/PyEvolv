@@ -6,7 +6,7 @@ MAX_SENSOR_LENGTH = 30 # The maximum length in Relatives a Creatures Sensor can 
 
 FOOD_ADDED_PER_STEP = 0.01 # The amount of food added per tile per step (The maximum food on a tile is 1)
 FOOD_LOST_ON_STEP = 0.03 # The amount of food lost by a creature per step
-MAX_FOOD_DIFFERNCE_FOR_NO_LOSS = 0.15 # The Difference betwwen Tile hue and mouth hue, to result in a loss of food for the creature 
+MAX_FOOD_DIFFERNCE_FOR_NO_LOSS = 0.1 # The Difference betwwen Tile hue and mouth hue, to result in a loss of food for the creature 
 MAX_FOOD_LOSS = 2 # The maximum Food Loss a Creature can suffer (Only for tile)
 STARTING_SIZE = 3 # The Size of a creature with the starting food (in relatives)
 

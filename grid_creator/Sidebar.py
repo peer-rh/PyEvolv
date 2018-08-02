@@ -6,7 +6,7 @@ from scipy import ndimage
 
 
 class Sidebar:
-    def __init__(self, width, height, background_color=(255, 255, 255), primary_color=(0,0,0), primary_color_2=(7,6,255)):
+    def __init__(self, width, height, background_color=(255, 255, 255), primary_color=(0,0,0), primary_color_2=(0,0,255)):
         self.width = width
         self.height = height
         self.background_color = background_color

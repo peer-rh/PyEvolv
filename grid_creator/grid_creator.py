@@ -1,8 +1,6 @@
 import pygame
 import numpy as np
-from Creature import Creature
 import colorsys
-from CONSTANTS import *
 import time
 
 class Game:
@@ -19,8 +17,7 @@ class Game:
         pygame.init()
         
         pygame.font.init()
-        self.myfont = pygame.font.SysFont('Arial', 20)
-        self.myfont2 = pygame.font.SysFont('Arial', 17)
+        self.myfont = pygame.font.Font('../Arial.ttf', 20)
         
         self.clock = pygame.time.Clock()
 
@@ -200,7 +197,7 @@ class Game:
             self._flood_fill(max(0, x-1), y, old_color, new_color)
 
 
-gc = Game(800, 600,np.load("grid.npy"), 750)
+gc = Game(800, 600,np.load("../grids/grid.npy"), 750)
 while not gc.crashed:
     gc.next_frame()
 

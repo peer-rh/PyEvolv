@@ -19,7 +19,7 @@ class Game:
         pygame.init()
 
         pygame.font.init()
-        self.myfont = pygame.font.SysFont('Avenir', 20)
+        self.myfont = pygame.font.Font("Arial.ttf", 20)
 
         self.clock = pygame.time.Clock()
 

@@ -21,6 +21,7 @@ python main.py
 
 To Create a New Map:
 ``` 
+cd grid_creator
 python grid_creator.py
 ```
 

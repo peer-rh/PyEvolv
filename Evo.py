@@ -6,6 +6,13 @@ from Net import Net
 
 class Evolution():
     def __init__(self, n_population, grid):
+        """The Evolution class. It handles Giving Information to the Creatures and then converting the Creatures state and handles the proccess of Natural Selection
+        
+        Arguments:
+            n_population {int} -- The number of starting population
+            grid {np.array} -- The grid with size [len_x, len_y, 3] where each tile is [hue, saturation, value]
+        """
+
         self.n_population = n_population
         self.grid = grid
         self.creatures_per_species_count = {}
@@ -13,6 +20,9 @@ class Evolution():
         self._create_population()
 
     def next_step(self):
+        """Handles Natural Selection, Feeding the Creatures brain and so on
+        """
+
         for creature in self.creatures:
             if creature.dead:
                 self.creatures_per_species_count[creature.species][0] -= 1
@@ -35,6 +45,9 @@ class Evolution():
 
 
     def _create_population(self):
+        """The function for randomly creating the population
+        """
+
         self.creatures = []
         for j in range(self.n_population):
             weights_1 = np.random.randn(11, 20)*0.1
@@ -53,6 +66,15 @@ class Evolution():
             self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, j))
     
     def _calculate_food_added(self, creature):
+        """A function for calculation the amount of food added to an creature
+        
+        Arguments:
+            creature {Creature} -- The creature which gets fed
+        
+        Returns:
+            float -- The amount of food which should be given to the creature
+        """
+
         x, y = creature.relative_x, creature.relative_y
         if self.grid[int(x/10)-1,int(y/10)-1,2] == 0:
             food_given = -FOOD_LOST_ON_WATER
@@ -66,6 +88,12 @@ class Evolution():
         return food_given
     
     def _create_new_child(self, creature):
+        """The function for creating a child with mutation
+        
+        Arguments:
+            creature {Creature} -- The parent creature
+        """
+
         self.creatures_per_species_count[creature.species][0] += 1
         creature.food -= FOOD_LOST_ON_NEW_CHILD
         modification_matrix_1 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (11, 20))

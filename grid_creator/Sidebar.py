@@ -7,6 +7,18 @@ from scipy import ndimage
 
 class Sidebar:
     def __init__(self, width, height, background_color=(255, 255, 255), primary_color=(0,0,0), primary_color_2=(0,0,255)):
+        """The Sidebar of the grid_creator
+        
+        Arguments:
+            width {int} -- The width in pixels of the sidebar
+            height {int} -- The height in pixels of the sidebar
+        
+        Keyword Arguments:
+            background_color {tuple} -- The background color of the Sidebar (default: {(255, 255, 255)})
+            primary_color {tuple} -- The primary color of the sidebar (default: {(0,0,0)})
+            primary_color_2 {tuple} -- The second primary color of the sidebar (default: {(0,0,255)})
+        """
+
         self.width = width
         self.height = height
         self.background_color = background_color
@@ -32,6 +44,9 @@ class Sidebar:
         self._make_save_load()
         
     def next_frame(self):
+        """The next fame on the sidebar surface. It draws and displays everything
+        """
+
         self.sidebar_surf.fill(self.background_color)
         self._draw_slider_1()
         self._draw_slider_2()
@@ -39,12 +54,25 @@ class Sidebar:
         self._draw_save_load()
     
     def update_slider(self, slider_1_val, slider_2_val):
+        """Function to update slider_vals
+        
+        Arguments:
+            slider_1_val {int} -- The slider 1 value in pixels from the starting point
+            slider_2_val {int} -- The slider 2 value in pixels from the starting point
+        """
+
         self.slider_1_val = slider_1_val
         self.slider_1_rgb = np.asarray(colorsys.hsv_to_rgb(self.slider_1_val/(self.width-60), 1, 1)) * 255
         self.slider_2_val = slider_2_val
         self.slider_2_rgb = np.asarray(colorsys.hsv_to_rgb(self.slider_1_val/(self.width-60), self.slider_2_val/(self.width-40), 1)) * 255
 
     def controller(self, event):
+        """The controller for the Sidebar
+        
+        Arguments:
+            event {event} -- One single event from pygame.event.get
+        """ 
+
         if not self.text_field_selected:
             if event.type == pygame.MOUSEMOTION:
                 if 20 <= event.pos[0] <= self.width - 40 and 20 < event.pos[1] < 40 and event.buttons[0] == 1:
@@ -93,14 +121,23 @@ class Sidebar:
                     self.grid_name_surf = self.font.render(self.grid_name, True, self.primary_color)
 
     def _draw_slider_1(self):
+        """draw slider 1
+        """
+
         pygame.draw.rect(self.sidebar_surf, self.primary_color, (20, 20, self.width-40, 20), 1)
         pygame.draw.rect(self.sidebar_surf, self.slider_1_rgb, (20+self.slider_1_val, 20, 20, 20))
 
     def _draw_slider_2(self):
+        """draw slider 2
+        """
+
         pygame.draw.rect(self.sidebar_surf, self.primary_color, (20, 60, self.width-40, 20), 1)
         pygame.draw.rect(self.sidebar_surf, self.slider_2_rgb, (20+self.slider_2_val, 60, 20, 20))
     
     def _draw_tools(self):
+        """draw all the 3 tools, water, color picker and fill
+        """
+
         if self.water:
             self.sidebar_surf.blit(self.water_img_on, (20, 100))
         else:
@@ -117,6 +154,9 @@ class Sidebar:
             self.sidebar_surf.blit(self.fill_img_off, (84+2*self.place_between_tools, 100))
     
     def _draw_save_load(self):
+        """draw the save and load section
+        """
+
         pygame.draw.rect(self.sidebar_surf, self.primary_color, self.text_field, 2)
         self.sidebar_surf.blit(self.grid_name_surf, (25, self.height - 125))
 
@@ -126,6 +166,9 @@ class Sidebar:
         self.sidebar_surf.blit(self.load_text, self.load_text_dest)
     
     def _generate_water_img(self):
+        """generate the water icon based on the primary colors
+        """
+
         img = cv2.imread("assets/water.png", cv2.IMREAD_UNCHANGED)
         img = cv2.resize(img, (32, 32))
 
@@ -149,6 +192,9 @@ class Sidebar:
         self.water_img_on.get_rect().center = center
 
     def _generate_color_picker_img(self):
+        """generate the color picker icon based on the primary colors
+        """
+
         img = cv2.imread("assets/color_picker.png", cv2.IMREAD_UNCHANGED)
         img = cv2.resize(img, (32, 32))
         indexes = np.where(img[:,:,3] == 0)
@@ -166,6 +212,9 @@ class Sidebar:
 
     
     def _generate_fill_img(self):
+        """generate the fill bucket icon based on the primary colors
+        """
+
         img = cv2.imread("assets/fill_bucket.png", cv2.IMREAD_UNCHANGED)
         img = cv2.resize(img, (32, 32))
         indexes = np.where(img[:,:,3] == 0)
@@ -191,6 +240,9 @@ class Sidebar:
         self.fill_img_on = pygame.transform.flip(self.fill_img_on, True, False)
         
     def _make_save_load(self):
+        """generate the text and rects for the save and load section
+        """
+
         self.text_field = pygame.Rect(20, self.height-140, self.width-40, 50)
         self.grid_name = "grid"
         self.grid_name_surf = self.font.render(self.grid_name, True, self.primary_color)

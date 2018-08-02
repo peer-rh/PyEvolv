@@ -1,4 +1,4 @@
-# PyEvolv v1.0
+# PyEvolv v1.1
 
 ## What is PyEvolv
 PyEvolv is an evolution simulator inspired by Evolvio by Karykh. As its name suggests it is implemented in python and pygame.

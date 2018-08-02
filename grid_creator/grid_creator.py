@@ -4,8 +4,22 @@ import colorsys
 import time
 from Sidebar import Sidebar
 
-class Game:
+class GridCreator:
     def __init__(self,display_width, display_height, grid, relatives_on_screen, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_primary2=(0,0,255)):
+        """The GridCreator class helps with creation of grids for the Game
+        
+        Arguments:
+            display_width {int} -- The amount of pixels the window is wide
+            display_height {int} -- The amount of pixels the window is high
+            grid {np.array} -- The starting grid
+            relatives_on_screen {int} -- The amount of relatives displayed on the screen at the beginning
+        
+        Keyword Arguments:
+            sidebar_bg {tuple} -- The bg color of the sidebar in RGB (default: {(255,255,255)})
+            sidebar_primary {tuple} -- The primary color of the sidebar in RGB (default: {(0,0,0)})
+            sidebar_primary2 {tuple} -- The second primary color of the sidebar in RGB (default: {(0,0,255)})
+        """
+
         self.display_width = display_width
         self.display_height = display_height
         self.relative_x = 0
@@ -34,6 +48,9 @@ class Game:
 
 
     def next_frame(self):
+        """The next frame. Handles events and displays everything
+        """
+
         if not self.crashed:
             events = pygame.event.get()
 
@@ -61,6 +78,12 @@ class Game:
             self.clock.tick(60)
 
     def _brush_controller(self, event):
+        """The controller for the brush
+        
+        Arguments:
+            event {event} -- a single event from pygame.event.get()
+        """
+
         color_picker_used = self.sidebar.color_picker
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.sidebar_width < event.pos[0] and event.button == 1: 
@@ -92,6 +115,9 @@ class Game:
                 self.grid[self.brush[1], self.brush[2]] = self.brush[0]
 
     def _sidebar_controller(self):
+        """Connection betwenn Sidebar Class and GridCreator Class
+        """
+
         self.brush[0][0] = self.sidebar.slider_1_val / (self.sidebar_width-60)
         self.brush[0][1] = self.sidebar.slider_1_val / (self.sidebar_width-60)
 
@@ -115,6 +141,12 @@ class Game:
                 print("failed")
     
     def _grid_controller(self, event):
+        """The Grid Controller to zoom and move through the grid
+        
+        Arguments:
+            event {event} -- A single event from pygame.event.get()
+        """
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.relative_x_change = -5
@@ -141,6 +173,12 @@ class Game:
 
 
     def _display_grid(self, gameDisplay):
+        """Displays the grid on the gameDisplay
+        
+        Arguments:
+            gameDisplay {pygame.Surface} -- The surface to display the grid on
+        """
+
         pixels_per_relative = self.display_height / self.relatives_on_screen
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
@@ -149,6 +187,15 @@ class Game:
                 pygame.draw.rect(gameDisplay, (int(color[0]), int(color[1]), int(color[2])), (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
     def _flood_fill(self, x, y, old_color, new_color):
+        """The 4flood fill algorithm
+        
+        Arguments:
+            x {int} -- the x coordinate of the tile where the fill algo starts on
+            y {int} -- the y coordinate of the tile where the fill algo start on
+            old_color {list} -- The old color of the grid tile in HSV
+            new_color {list} -- The new color with which the the flooded fields should be colored in HSV
+        """
+
         if list(self.grid[x, y]) == old_color:
             self.grid[x,y] = new_color
             self._flood_fill(x, min(self.grid.shape[1]-1, y+1), old_color, new_color)
@@ -157,8 +204,8 @@ class Game:
             self._flood_fill(max(0, x-1), y, old_color, new_color)
 
 
-gc = Game(800, 600,np.zeros((75, 75, 3)), 750)
+gc = GridCreator(800, 600,np.zeros((75, 75, 3)), 750)
 while not gc.crashed:
     gc.next_frame()
 
-np.save(".autosave.npy", gc.grid)
+np.save("../grids/.autosave.npy", gc.grid)

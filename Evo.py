@@ -50,8 +50,8 @@ class Evolution():
 
         self.creatures = []
         for j in range(self.n_population):
-            weights_1 = np.random.randn(11, 20)*0.1
-            weights_2 = np.random.randn(20, 4)*0.1
+            weights_1 = np.random.randn(11+N_HIDDEN_UNITS, N_HIDDEN_UNITS)*0.1
+            weights_2 = np.random.randn(N_HIDDEN_UNITS, 4)*0.1
             net = Net(weights_1, weights_2)
             sensors = np.concatenate([np.random.randint(0, MAX_SENSOR_LENGTH, (3)),
                                       np.random.randint(0, 360, 3)])
@@ -96,9 +96,9 @@ class Evolution():
 
         self.creatures_per_species_count[creature.species][0] += 1
         creature.food -= FOOD_LOST_ON_NEW_CHILD
-        modification_matrix_1 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (11, 20))
+        modification_matrix_1 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (11+N_HIDDEN_UNITS, N_HIDDEN_UNITS))
         modified_weights_1 = creature.net.weights_1 + modification_matrix_1
-        modification_matrix_2 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (20, 4))
+        modification_matrix_2 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (N_HIDDEN_UNITS, 4))
         modified_weights_2 = creature.net.weights_2 + modification_matrix_2
         modified_food_color = [max(0, min(1, creature.food_color[0] + np.random.uniform(MIN_COLOR_CHANGE, MAX_COLOR_CHANGE))), 1, 1]
         modified_sensor1 = (min(MAX_SENSOR_LENGTH, creature.sensor_1[0]+np.random.randint(MIN_SENSOR_LEN_MUTATION, MAX_SENSOR_ANGLE_MUTATION)),

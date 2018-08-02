@@ -12,6 +12,7 @@ STARTING_SIZE = 3 # The Size of a creature with the starting food (in relatives)
 
 MIN_WEIGHT_MUTATION = -0.05 # The minimum mutation of the neural network weights
 MAX_WEIGHT_MUTATION = 0.05 # The maximum mutation of the neural network weights
+N_HIDDEN_UNITS = 10
 
 MIN_COLOR_CHANGE = -0.05 # The minimum mutation of the hue of the mouth color
 MAX_COLOR_CHANGE = 0.05 # The maximum mutation of the hue of the mouth color

@@ -6,7 +6,7 @@ from CONSTANTS import *
 def main():
     grid = np.load("grids/grid.npy")
     evolution = Evolution(N_POPULATION, grid)
-    game = Game(800, 600, grid, evolution, 750)
+    game = Game(1600, 1200, grid, evolution, 750)
 
     while not game.crashed:
         for _ in range(EVO_STEPS_PER_FRAME):

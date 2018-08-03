@@ -1,8 +1,8 @@
 import numpy as np
 
-from CONSTANTS import *
-from Creature import Creature
-from Net import Net
+from PyEvolv.game.CONSTANTS import *
+from PyEvolv.game.Creature import Creature
+from PyEvolv.game.Net import Net
 
 class Evolution():
     def __init__(self, n_population, grid):
@@ -17,11 +17,16 @@ class Evolution():
         self.grid = grid
         self.creatures_per_species_count = {}
         self.non_water_region = np.where(self.grid[:,:,2] != 0)
+        self.n_species = n_population
         self._create_population()
 
     def next_step(self):
         """Handles Natural Selection, Feeding the Creatures brain and so on
         """
+
+        if np.random.randint(0, 10) < 3 and NEW_SPECIES_ON_STEPS:
+            self.n_species += 1
+            self._new_species(self.n_species)
 
         for creature in self.creatures:
             if creature.dead:
@@ -50,21 +55,26 @@ class Evolution():
 
         self.creatures = []
         for j in range(self.n_population):
-            weights_1 = np.random.randn(11+N_HIDDEN_UNITS, N_HIDDEN_UNITS)*0.1
-            weights_2 = np.random.randn(N_HIDDEN_UNITS, 4)*0.1
-            net = Net(weights_1, weights_2)
-            sensors = np.concatenate([np.random.randint(0, MAX_SENSOR_LENGTH, (3)),
-                                      np.random.randint(0, 360, 3)])
+            self._new_species(j)
 
-            i = np.random.randint(0, len(self.non_water_region[0]))
-            x = self.non_water_region[0][i]*10
-            y = self.non_water_region[1][i]*10
-            color = (np.random.uniform(0, 1), 1, 1)
-            food_color = (np.random.uniform(0, 1), 1, 1)
-            size = STARTING_SIZE
-            self.creatures_per_species_count[j] = [1, color]
-            self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, j))
+    def _new_species(self, species):
+        weights_1 = np.random.randn(11+N_HIDDEN_UNITS, N_HIDDEN_UNITS)*0.1
+        weights_2 = np.random.randn(N_HIDDEN_UNITS, N_HIDDEN_UNITS)*0.1
+        weights_3 = np.random.randn(N_HIDDEN_UNITS, 4)*0.1
+        net = Net(weights_1, weights_2, weights_3)
+        sensors = np.concatenate([np.random.randint(0, MAX_SENSOR_LENGTH, (3)),
+                                    np.random.randint(0, 360, 3)])
+
+        i = np.random.randint(0, len(self.non_water_region[0]))
+        x = self.non_water_region[0][i]*10
+        y = self.non_water_region[1][i]*10
+        color = (np.random.uniform(0, 1), 1, 1)
+        food_color = (np.random.uniform(0, 1), 1, 1)
+        size = STARTING_SIZE
+        self.creatures_per_species_count[species] = [1, color]
+        self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, species))
     
+
     def _calculate_food_added(self, creature):
         """A function for calculation the amount of food added to an creature
         
@@ -98,8 +108,11 @@ class Evolution():
         creature.food -= FOOD_LOST_ON_NEW_CHILD
         modification_matrix_1 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (11+N_HIDDEN_UNITS, N_HIDDEN_UNITS))
         modified_weights_1 = creature.net.weights_1 + modification_matrix_1
-        modification_matrix_2 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (N_HIDDEN_UNITS, 4))
+        modification_matrix_2 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (N_HIDDEN_UNITS, N_HIDDEN_UNITS))
         modified_weights_2 = creature.net.weights_2 + modification_matrix_2
+        modification_matrix_3 = np.random.uniform(MIN_WEIGHT_MUTATION, MAX_WEIGHT_MUTATION, (N_HIDDEN_UNITS, 4))
+        modified_weights_3 = creature.net.weights_3 + modification_matrix_3
+        
         modified_food_color = [max(0, min(1, creature.food_color[0] + np.random.uniform(MIN_COLOR_CHANGE, MAX_COLOR_CHANGE))), 1, 1]
         modified_sensor1 = (min(MAX_SENSOR_LENGTH, creature.sensor_1[0]+np.random.randint(MIN_SENSOR_LEN_MUTATION, MAX_SENSOR_ANGLE_MUTATION)),
                             creature.sensor_1[1] + np.random.randint(MIN_SENSOR_ANGLE_MUTATION, MAX_SENSOR_ANGLE_MUTATION) % 360)
@@ -108,7 +121,7 @@ class Evolution():
         modified_sensor3 = (min(MAX_SENSOR_LENGTH, creature.sensor_3[0]+np.random.randint(MIN_SENSOR_LEN_MUTATION, MAX_SENSOR_ANGLE_MUTATION)),
                             creature.sensor_3[1] + np.random.randint(MIN_SENSOR_ANGLE_MUTATION, MAX_SENSOR_ANGLE_MUTATION) % 360)
         
-        net = Net(modified_weights_1, modified_weights_2)
+        net = Net(modified_weights_1, modified_weights_2, modified_weights_3)
         new_creature = Creature(modified_sensor1, modified_sensor2, modified_sensor3, 
                                 creature.relative_x, creature.relative_y, 10*self.grid.shape[0], 10*self.grid.shape[1], creature.color, 
                                 modified_food_color, 8, net, creature.species)

@@ -1,5 +1,5 @@
 import numpy as np
-from CONSTANTS import *
+from PyEvolv.game.CONSTANTS import *
 
 
 class Creature:

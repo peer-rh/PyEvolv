@@ -1,8 +1,8 @@
 import pygame
 import numpy as np
-from Creature import Creature
 import colorsys
-from CONSTANTS import *
+from PyEvolv.assets.font import FONT
+from PyEvolv.game.CONSTANTS import *
 
 class Game:
     def __init__(self,display_width, display_height, grid, evo, relatives_on_screen):
@@ -19,27 +19,21 @@ class Game:
         pygame.init()
 
         pygame.font.init()
-        self.myfont = pygame.font.Font("Arial.ttf", 20)
+        self.myfont = FONT
 
         self.clock = pygame.time.Clock()
 
-        self.gameDisplay = pygame.display.set_mode((display_width,display_height))
+        self.gameDisplay = pygame.Surface((display_width,display_height))
         pygame.display.set_caption('Evolution Simulator')
 
         self.sidebar_width = display_width-display_height
         self.map_surf = pygame.Surface((display_height, display_height))
         self.sidebar_surf = pygame.Surface((self.sidebar_width, display_height))
-        self.crashed = False
         self.step = 0
 
     def next_frame(self, creatures, creature_counts):
         if not self.crashed:
             self.step += EVO_STEPS_PER_FRAME
-            events = pygame.event.get()
-            self._grid_controller(events)
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self.crashed = True
 
             self.sidebar_surf.fill((255, 255, 255))
             self.map_surf.fill((0,0,0))
@@ -52,41 +46,44 @@ class Game:
             self.gameDisplay.blit(self.map_surf, (self.sidebar_width, 0))
             self.gameDisplay.blit(self.sidebar_surf, (0, 0))
 
-            pygame.display.update()
-    
+            self.relative_x = min(max(0, self.relative_x + self.relative_x_change), 10*self.grid.shape[0] - self.relatives_on_screen)
+            self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
+
+
+    def controller(self, event):
+        self._grid_controller(event)
+
     def update_grid(self, new_grid):
         assert new_grid.shape == self.grid.shape
         self.grid = new_grid 
 
-    def _grid_controller(self, events):
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    self.relative_x_change = -3
-                elif event.key == pygame.K_RIGHT:
-                    self.relative_x_change = 3
-                
-                if event.key == pygame.K_DOWN:
-                    self.relative_y_change = 3
+    def _grid_controller(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                self.relative_x_change = -3
+            elif event.key == pygame.K_RIGHT:
+                self.relative_x_change = 3
             
-                elif event.key == pygame.K_UP:
-                    self.relative_y_change = -3
-
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                    self.relative_x_change = 0
-                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    self.relative_y_change = 0
+            if event.key == pygame.K_DOWN:
+                self.relative_y_change = 3
         
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 4:
-                    self.relatives_on_screen = min(max(10, self.relatives_on_screen + 3), self.grid.shape[0]*10)
-                elif event.button == 5:
-                    self.relatives_on_screen = min(max(10, self.relatives_on_screen - 3), self.grid.shape[0]*10)
+            elif event.key == pygame.K_UP:
+                self.relative_y_change = -3
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                self.relative_x_change = 0
+            if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                self.relative_y_change = 0
+    
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 4:
+                self.relatives_on_screen = min(max(10, self.relatives_on_screen + 3), self.grid.shape[0]*10)
+            elif event.button == 5:
+                self.relatives_on_screen = min(max(10, self.relatives_on_screen - 3), self.grid.shape[0]*10)
 
         
-        self.relative_x = min(max(0, self.relative_x + self.relative_x_change), 10*self.grid.shape[0] - self.relatives_on_screen)
-        self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
+        
 
     def _display_grid(self, gameDisplay):
         pixels_per_relative = self.display_height / self.relatives_on_screen
@@ -133,7 +130,7 @@ class Game:
         for i in creature_counts.values():
             count = i[0]
             color = i[1]
-            pixels = 400 * (count/n_creatures)
+            pixels = (self.display_height-120) * (count/n_creatures)
             pygame.draw.rect(gameDisplay, np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255,
                              (20, current_y, self.sidebar_width-40, pixels))
             current_y += pixels

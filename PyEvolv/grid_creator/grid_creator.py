@@ -2,7 +2,9 @@ import pygame
 import numpy as np
 import colorsys
 import time
-from Sidebar import Sidebar
+import os
+from PyEvolv.grid_creator.Sidebar import Sidebar
+from PyEvolv.assets.font import FONT
 
 class GridCreator:
     def __init__(self,display_width, display_height, grid, relatives_on_screen, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_primary2=(0,0,255)):
@@ -32,8 +34,7 @@ class GridCreator:
         pygame.init()
         
         pygame.font.init()
-        self.myfont = pygame.font.Font('../Arial.ttf', 20)
-        
+        self.font = FONT
         self.clock = pygame.time.Clock()
 
         self.gameDisplay = pygame.display.set_mode((display_width,display_height))
@@ -202,10 +203,3 @@ class GridCreator:
             self._flood_fill(x, max(0, y-1), old_color, new_color)
             self._flood_fill(min(self.grid.shape[0]-1, x+1), y, old_color, new_color)
             self._flood_fill(max(0, x-1), y, old_color, new_color)
-
-
-gc = GridCreator(800, 600,np.zeros((75, 75, 3)), 750)
-while not gc.crashed:
-    gc.next_frame()
-
-np.save("../grids/.autosave.npy", gc.grid)

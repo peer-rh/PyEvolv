@@ -2,8 +2,7 @@ import pygame
 import colorsys
 import numpy as np
 import cv2
-from scipy import ndimage
-
+import os
 
 class Sidebar:
     def __init__(self, width, height, background_color=(255, 255, 255), primary_color=(0,0,0), primary_color_2=(0,0,255)):
@@ -26,7 +25,7 @@ class Sidebar:
         self.primary_color_2 = primary_color_2
         
         self.sidebar_surf = pygame.Surface((width, height))
-        self.font = pygame.font.Font('../Arial.ttf', 20)
+        self.font = pygame.font.Font("/".join(os.path.realpath(__file__).split("/")[:-2]) + '/assets/Arial.ttf', 20)
 
         self.update_slider(0,0)
 
@@ -97,7 +96,6 @@ class Sidebar:
                         self.fill = 0
 
                     elif 0 <= mouse_pos[0] - (84+2*self.place_between_tools) <= 32:
-                        self.water = 0
                         self.color_picker = 0
                         self.fill = np.abs(self.fill-1)
                 

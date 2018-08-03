@@ -7,7 +7,7 @@ from PyEvolv.grid_creator.Sidebar import Sidebar
 from PyEvolv.assets.font import FONT
 
 class GridCreator:
-    def __init__(self,display_width, display_height, grid, relatives_on_screen, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_primary2=(0,0,255)):
+    def __init__(self,display_width, display_height, grid, grids_path, relatives_on_screen, y=50, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_primary2=(0,0,255)):
         """The GridCreator class helps with creation of grids for the Game
         
         Arguments:
@@ -27,23 +27,20 @@ class GridCreator:
         self.relative_x = 0
         self.relative_y = 0
         self.grid = grid
+        self.grids_path = grids_path
         self.relative_x_change = 0
         self.relative_y_change = 0
         self.relatives_on_screen = relatives_on_screen
+        self.y = y
 
-        pygame.init()
-        
-        pygame.font.init()
         self.font = FONT
-        self.clock = pygame.time.Clock()
 
-        self.gameDisplay = pygame.display.set_mode((display_width,display_height))
+        self.surf = pygame.Surface((display_width,display_height))
         pygame.display.set_caption('GridCreator')
 
         self.sidebar_width = display_width-display_height
         self.map_surf = pygame.Surface((display_height, display_height))
-        self.sidebar = Sidebar(self.sidebar_width, self.display_height, background_color=sidebar_bg, primary_color=sidebar_primary, primary_color_2=sidebar_primary2) 
-        self.crashed = False
+        self.sidebar = Sidebar(self.sidebar_width, self.display_height, self.y, background_color=sidebar_bg, primary_color=sidebar_primary, primary_color_2=sidebar_primary2) 
         
         self.brush = [[0, 0, 1], 0, 0] # color hsv, size in tiles, rel_x, rel_y
 
@@ -51,32 +48,24 @@ class GridCreator:
     def next_frame(self):
         """The next frame. Handles events and displays everything
         """
-
-        if not self.crashed:
-            events = pygame.event.get()
-
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self.crashed = True
-                self.sidebar.controller(event)
-                self._grid_controller(event)
-                self._brush_controller(event)
             
-            self.relative_x = min(max(0, self.relative_x + self.relative_x_change), 10*self.grid.shape[0] - self.relatives_on_screen)
-            self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
-            
-            self._sidebar_controller()
-            self.sidebar.next_frame()
+        self.relative_x = min(max(0, self.relative_x + self.relative_x_change), 10*self.grid.shape[0] - self.relatives_on_screen)
+        self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
+        
+        self._sidebar_controller()
+        self.sidebar.next_frame()
 
-            self.map_surf.fill((0,0,0))
+        self.map_surf.fill((0,0,0))
 
-            self._display_grid(self.map_surf)
+        self._display_grid(self.map_surf)
 
-            self.gameDisplay.blit(self.map_surf, (self.sidebar_width, 0))
-            self.gameDisplay.blit(self.sidebar.sidebar_surf, (0, 0))
+        self.surf.blit(self.map_surf, (self.sidebar_width, 0))
+        self.surf.blit(self.sidebar.sidebar_surf, (0, 0))
 
-            pygame.display.update()
-            self.clock.tick(60)
+    def controller(self, event):
+        self.sidebar.controller(event)
+        self._grid_controller(event)
+        self._brush_controller(event)
 
     def _brush_controller(self, event):
         """The controller for the brush
@@ -92,7 +81,7 @@ class GridCreator:
                     relatives_per_pixel = self.relatives_on_screen / self.display_height
 
                     relative_mouse_x = (event.pos[0] - self.sidebar_width) * relatives_per_pixel
-                    relative_mouse_y = event.pos[1] * relatives_per_pixel
+                    relative_mouse_y = (event.pos[1]-self.y) * relatives_per_pixel
                     tile_x = int(self.relative_x//10 + relative_mouse_x // 10)
                     tile_y = int(self.relative_y//10 + relative_mouse_y // 10)
                     if self.sidebar.color_picker:
@@ -109,7 +98,7 @@ class GridCreator:
                 relatives_per_pixel = self.relatives_on_screen / self.display_height
 
                 relative_mouse_x = (event.pos[0] - self.sidebar_width) * relatives_per_pixel
-                relative_mouse_y = event.pos[1] * relatives_per_pixel
+                relative_mouse_y = (event.pos[1]-self.y) * relatives_per_pixel
 
                 self.brush[1] = int(self.relative_x//10 + relative_mouse_x // 10)
                 self.brush[2] = int(self.relative_y//10 + relative_mouse_y // 10)
@@ -129,14 +118,14 @@ class GridCreator:
         
         if self.sidebar.save:
             try:
-                np.save("../grids/" + self.sidebar.grid_name + ".npy", self.grid)
+                np.save(self.grids_path + self.sidebar.grid_name + ".npy", self.grid)
                 self.sidebar.save = False
             except:
                 print("failed")
         if self.sidebar.load:
             try:
-                np.save("../grids/.autosave.npy", self.grid)
-                self.grid = np.load("../grids/" + self.sidebar.grid_name + ".npy")
+                np.save(self.grids_path + ".autosave.npy", self.grid)
+                self.grid = np.load(self.grids_path + self.sidebar.grid_name + ".npy")
                 self.sidebar.load = False
             except:
                 print("failed")

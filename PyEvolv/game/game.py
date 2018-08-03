@@ -23,7 +23,7 @@ class Game:
 
         self.clock = pygame.time.Clock()
 
-        self.gameDisplay = pygame.Surface((display_width,display_height))
+        self.surf = pygame.Surface((display_width,display_height))
         pygame.display.set_caption('Evolution Simulator')
 
         self.sidebar_width = display_width-display_height
@@ -32,22 +32,21 @@ class Game:
         self.step = 0
 
     def next_frame(self, creatures, creature_counts):
-        if not self.crashed:
-            self.step += EVO_STEPS_PER_FRAME
+        self.step += EVO_STEPS_PER_FRAME
 
-            self.sidebar_surf.fill((255, 255, 255))
-            self.map_surf.fill((0,0,0))
+        self.sidebar_surf.fill((255, 255, 255))
+        self.map_surf.fill((0,0,0))
 
-            self._display_grid(self.map_surf)
-            self._display_creature(self.map_surf, creatures)
-            self._display_sidebar(self.sidebar_surf, len(creatures), creature_counts)
+        self._display_grid(self.map_surf)
+        self._display_creature(self.map_surf, creatures)
+        self._display_sidebar(self.sidebar_surf, len(creatures), creature_counts)
 
 
-            self.gameDisplay.blit(self.map_surf, (self.sidebar_width, 0))
-            self.gameDisplay.blit(self.sidebar_surf, (0, 0))
+        self.surf.blit(self.map_surf, (self.sidebar_width, 0))
+        self.surf.blit(self.sidebar_surf, (0, 0))
 
-            self.relative_x = min(max(0, self.relative_x + self.relative_x_change), 10*self.grid.shape[0] - self.relatives_on_screen)
-            self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
+        self.relative_x = min(max(0, self.relative_x + self.relative_x_change), 10*self.grid.shape[0] - self.relatives_on_screen)
+        self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
 
 
     def controller(self, event):
@@ -81,9 +80,6 @@ class Game:
                 self.relatives_on_screen = min(max(10, self.relatives_on_screen + 3), self.grid.shape[0]*10)
             elif event.button == 5:
                 self.relatives_on_screen = min(max(10, self.relatives_on_screen - 3), self.grid.shape[0]*10)
-
-        
-        
 
     def _display_grid(self, gameDisplay):
         pixels_per_relative = self.display_height / self.relatives_on_screen

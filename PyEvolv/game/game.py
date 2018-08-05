@@ -85,9 +85,10 @@ class Game:
         pixels_per_relative = self.display_height / self.relatives_on_screen
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
-                color = self.grid[x, y]
-                color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
-                pygame.draw.rect(gameDisplay, color, (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
+                if self.relative_x <= x*10 <= self.relative_x + self.relatives_on_screen and self.relative_y <= y*10 <= self.relative_y + self.relatives_on_screen:
+                    color = self.grid[x, y]
+                    color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
+                    pygame.draw.rect(gameDisplay, color, (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
     def _display_creature(self, gameDisplay, creatures):
         pixels_per_relative = self.display_height / self.relatives_on_screen

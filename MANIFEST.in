@@ -1,0 +1,3 @@
+include PyEvolv/assets/*.ttf
+include PyEvolv/assets/*.png
+

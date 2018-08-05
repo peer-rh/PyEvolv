@@ -121,15 +121,15 @@ class GridCreator:
                 np.save(self.grids_path + self.sidebar.grid_name + ".npy", self.grid)
                 self.sidebar.save = False
             except:
-                print("failed")
+                pass
         if self.sidebar.load:
             try:
                 np.save(self.grids_path + ".autosave.npy", self.grid)
                 self.grid = np.load(self.grids_path + self.sidebar.grid_name + ".npy")
                 self.sidebar.load = False
             except:
-                print("failed")
-    
+                pass
+                
     def _grid_controller(self, event):
         """The Grid Controller to zoom and move through the grid
         

@@ -2,16 +2,16 @@ import pygame
 import numpy as np
 import colorsys
 from PyEvolv.assets.font import FONT
-from PyEvolv.game.CONSTANTS import *
 
 class Game:
-    def __init__(self,display_width, display_height, grid, evo, relatives_on_screen):
+    def __init__(self,display_width, display_height, grid, evo, relatives_on_screen, constants):
         self.display_width = display_width
         self.display_height = display_height
         self.relative_x = 0
         self.relative_y = 0
         self.grid = grid
         self.evo = evo
+        self.constants = constants
         self.relative_x_change = 0
         self.relative_y_change = 0
         self.relatives_on_screen = relatives_on_screen
@@ -32,7 +32,7 @@ class Game:
         self.step = 0
 
     def next_frame(self, creatures, creature_counts):
-        self.step += EVO_STEPS_PER_FRAME
+        self.step += self.constants["evo_steps_per_frame"]
 
         self.sidebar_surf.fill((255, 255, 255))
         self.map_surf.fill((0,0,0))
@@ -96,7 +96,7 @@ class Game:
             x, y, color, food_color, size, rotation, sensor_1, sensor_2, sensor_3 = creature()
             if self.relative_x <= x <= self.relative_x + self.relatives_on_screen and self.relative_y <= y <= self.relative_y + self.relatives_on_screen:
                 size = int(size*pixels_per_relative)
-                surf_size = max(size, int(MAX_SENSOR_LENGTH*pixels_per_relative))
+                surf_size = max(size, int(self.constants["max_sensor_length"]*pixels_per_relative))
 
                 creature_surf = pygame.Surface((2*surf_size, 2*surf_size), pygame.SRCALPHA, 32)
                 creature_surf = creature_surf.convert_alpha()

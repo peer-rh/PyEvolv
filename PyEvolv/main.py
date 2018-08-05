@@ -3,20 +3,21 @@ from PyEvolv.game.Evo import Evolution
 from PyEvolv.game.game import Game
 from PyEvolv.grid_creator.grid_creator import GridCreator
 from PyEvolv.start_screen import StartingScreen
-from PyEvolv.game.CONSTANTS import *
 from PyEvolv.assets.font import FONT
 import pygame
+from pathlib import Path
 import os
 
 class PyEvolv:
-    def __init__(self, width, height, bg_color=(255,255,255), primary_color=(0,0,0), secondary_color=(0,0,255)):
+    def __init__(self, width, height, constants, bg_color=(255,255,255), primary_color=(0,0,0), secondary_color=(0,0,255)):
         self.width = width
         self.height = height
+        self.constants = constants
         self.bg_color = bg_color
         self.primary_color = primary_color
         self.secondary_color = secondary_color
 
-        self.grids_path = "/".join(os.path.realpath(__file__).split("/")[:-2])+"/grids"
+        self.grids_path = str(Path.home()) + "/.pyevolv/grids/"
 
         pygame.init()
         self.gameDisplay = pygame.display.set_mode((self.width, self.height))
@@ -70,7 +71,7 @@ class PyEvolv:
 
             if self.game == None:
                 self._generate_game()
-            for _ in range(EVO_STEPS_PER_FRAME):
+            for _ in range(self.constants["evo_steps_per_frame"]):
                 self.evolution.next_step()
             
             self.game.update_grid(self.evolution.grid)
@@ -105,9 +106,9 @@ class PyEvolv:
     
     def _generate_game(self):
         grid = np.load(self.grids_path + "/grid.npy")
-        self.evolution = Evolution(N_POPULATION, grid)
+        self.evolution = Evolution(self.constants["n_population"], grid, self.constants)
         self.game = Game(self.width, self.height-50, grid, 
-                        self.evolution, 750)
+                        self.evolution, 750, self.constants)
     
     def _generate_grid_creator(self):
         self.grid_creator = GridCreator(self.width, self.height-50, np.zeros((75, 75, 3)), self.grids_path+"/", 750, 50, self.bg_color, self.primary_color, self.secondary_color)

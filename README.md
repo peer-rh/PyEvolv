@@ -1,34 +1,36 @@
-# PyEvolv v1.1
+# PyEvolv v1.2 Beta
 
 ## What is PyEvolv
 PyEvolv is an evolution simulator inspired by Evolvio by Karykh. As its name suggests it is implemented in python and pygame.
 
 ## Get Started
-First of all clone the repo and you're almost good to go.
+### First of all clone the repo and you're almost good to go.
 ```
 git clone https://github.com/peerlator/PyEvolv.git
+cd PyEvolv
 ```
 
-Then install the needed dependecies
+### Then install the needed dependecies
 ```
-pip install pygame numpy
+pip install -r requirements.txt
+pip install .
 ```
 
-To Start a game:
+### Get Ready to start the game:
+- Copy grids and constants.json to your home directory/.pyevolv/
+```
+cp examples/grids ~/.pyevolv/grids
+cp examples/constants ~/.pyevolv/constants.json
+```
+
+### To Start a game:
 ``` 
-python main.py
+pyevolv --constants_file default
 ```
-
-To Create a New Map:
-``` 
-cd grid_creator
-python grid_creator.py
+To get more options:
+```
+pyevolv --help
 ```
 
 ## Tuning the hyper parameters
-The file Constants.py contains some hyperparameters which can be tuned
-
-## Sample Game
-This Game ended in the creatures failing to survive however often they will survive
-
-[![PyEvolv](https://img.youtube.com/vi/LZo5Hpl4gbI/0.jpg)](https://www.youtube.com/watch?v=LZo5Hpl4gbI)
+Edit the constants.json file in .pyevolv

@@ -2,11 +2,12 @@ import pygame
 import colorsys
 import numpy as np
 import cv2
-from scipy import ndimage
-
+from PyEvolv.assets.icons import *
+from PyEvolv.assets.font import FONT
+import os
 
 class Sidebar:
-    def __init__(self, width, height, background_color=(255, 255, 255), primary_color=(0,0,0), primary_color_2=(0,0,255)):
+    def __init__(self, width, height, y, background_color=(255, 255, 255), primary_color=(0,0,0), secondary_color=(0,0,255)):
         """The Sidebar of the grid_creator
         
         Arguments:
@@ -16,17 +17,18 @@ class Sidebar:
         Keyword Arguments:
             background_color {tuple} -- The background color of the Sidebar (default: {(255, 255, 255)})
             primary_color {tuple} -- The primary color of the sidebar (default: {(0,0,0)})
-            primary_color_2 {tuple} -- The second primary color of the sidebar (default: {(0,0,255)})
+            secondary_color {tuple} -- The second primary color of the sidebar (default: {(0,0,255)})
         """
 
         self.width = width
         self.height = height
+        self.y = y
         self.background_color = background_color
         self.primary_color = primary_color
-        self.primary_color_2 = primary_color_2
+        self.secondary_color = secondary_color
         
         self.sidebar_surf = pygame.Surface((width, height))
-        self.font = pygame.font.Font('../Arial.ttf', 20)
+        self.font = FONT
 
         self.update_slider(0,0)
 
@@ -75,16 +77,16 @@ class Sidebar:
 
         if not self.text_field_selected:
             if event.type == pygame.MOUSEMOTION:
-                if 20 <= event.pos[0] <= self.width - 40 and 20 < event.pos[1] < 40 and event.buttons[0] == 1:
+                if 20 <= event.pos[0] <= self.width - 40 and 20 < (event.pos[1]-self.y) < 40 and event.buttons[0] == 1:
                     self.update_slider(event.pos[0]-20, self.slider_2_val)
 
-                elif 20 <= event.pos[0] <= self.width - 40 and 60 < event.pos[1] < 80 and event.buttons[0] == 1:
+                elif 20 <= event.pos[0] <= self.width - 40 and 60 < (event.pos[1]-self.y) < 80 and event.buttons[0] == 1:
                     self.update_slider(self.slider_1_val, event.pos[0]-20)
 
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
-                if 100 <= mouse_pos[1] <= 132:
+                if 100 <= mouse_pos[1]-self.y <= 132:
                     if 0 <= mouse_pos[0] - 20 <= 32:
 
                         self.water = np.abs(self.water-1)
@@ -97,17 +99,16 @@ class Sidebar:
                         self.fill = 0
 
                     elif 0 <= mouse_pos[0] - (84+2*self.place_between_tools) <= 32:
-                        self.water = 0
                         self.color_picker = 0
                         self.fill = np.abs(self.fill-1)
                 
-                if self.text_field.collidepoint(event.pos[0], event.pos[1]):
+                if self.text_field.collidepoint(event.pos[0], (event.pos[1]-self.y)):
                     self.text_field_selected = True
                 
-                if self.save_button.collidepoint(event.pos[0], event.pos[1]):
+                if self.save_button.collidepoint(event.pos[0], (event.pos[1]-self.y)):
                     self.save = True
 
-                if self.load_button.collidepoint(event.pos[0], event.pos[1]):
+                if self.load_button.collidepoint(event.pos[0], (event.pos[1]-self.y)):
                     self.load = True
         else:
             if event.type == pygame.KEYDOWN:
@@ -169,7 +170,7 @@ class Sidebar:
         """generate the water icon based on the primary colors
         """
 
-        img = cv2.imread("assets/water.png", cv2.IMREAD_UNCHANGED)
+        img = WATER_IMG
         img = cv2.resize(img, (32, 32))
 
         indexes = np.where(img[:,:,3] == 0)
@@ -180,7 +181,7 @@ class Sidebar:
         self.water_img_off = np.copy(img)
         self.water_img_off[indexes_2[0], indexes_2[1]] = self.primary_color
         self.water_img_on = np.copy(img)
-        self.water_img_on[indexes_2[0], indexes_2[1]] = self.primary_color_2
+        self.water_img_on[indexes_2[0], indexes_2[1]] = self.secondary_color
 
         self.water_img_off = pygame.pixelcopy.make_surface(self.water_img_off.astype("int"))
         center = self.water_img_off.get_rect().center
@@ -195,7 +196,7 @@ class Sidebar:
         """generate the color picker icon based on the primary colors
         """
 
-        img = cv2.imread("assets/color_picker.png", cv2.IMREAD_UNCHANGED)
+        img = COLOR_PICKER_IMG
         img = cv2.resize(img, (32, 32))
         indexes = np.where(img[:,:,3] == 0)
         indexes_2 = np.where(img[:,:,3] != 0)
@@ -205,7 +206,7 @@ class Sidebar:
         self.color_picker_img_off = np.copy(img)
         self.color_picker_img_off[indexes_2[0], indexes_2[1]] = self.primary_color
         self.color_picker_img_on = np.copy(img)
-        self.color_picker_img_on[indexes_2[0], indexes_2[1]] = self.primary_color_2
+        self.color_picker_img_on[indexes_2[0], indexes_2[1]] = self.secondary_color
 
         self.color_picker_img_off = pygame.pixelcopy.make_surface(self.color_picker_img_off.astype("int"))
         self.color_picker_img_on = pygame.pixelcopy.make_surface(self.color_picker_img_on.astype("int"))
@@ -215,7 +216,7 @@ class Sidebar:
         """generate the fill bucket icon based on the primary colors
         """
 
-        img = cv2.imread("assets/fill_bucket.png", cv2.IMREAD_UNCHANGED)
+        img = FILL_IMG
         img = cv2.resize(img, (32, 32))
         indexes = np.where(img[:,:,3] == 0)
         indexes_2 = np.where(img[:,:,3] != 0)
@@ -225,7 +226,7 @@ class Sidebar:
         self.fill_img_off = np.copy(img)
         self.fill_img_off[indexes_2[0], indexes_2[1]] = self.primary_color
         self.fill_img_on = np.copy(img)
-        self.fill_img_on[indexes_2[0], indexes_2[1]] = self.primary_color_2
+        self.fill_img_on[indexes_2[0], indexes_2[1]] = self.secondary_color
 
         self.fill_img_off = pygame.pixelcopy.make_surface(self.fill_img_off.astype("int"))
         center = self.fill_img_off.get_rect().center

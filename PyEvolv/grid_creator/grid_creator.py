@@ -43,6 +43,7 @@ class GridCreator:
         self.sidebar = Sidebar(self.sidebar_width, self.display_height, self.y, background_color=sidebar_bg, primary_color=sidebar_primary, primary_color_2=sidebar_primary2) 
         
         self.brush = [[0, 0, 1], 0, 0] # color hsv, size in tiles, rel_x, rel_y
+        
 
 
     def next_frame(self):
@@ -172,9 +173,10 @@ class GridCreator:
         pixels_per_relative = self.display_height / self.relatives_on_screen
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
-                color = self.grid[x, y]
-                color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
-                pygame.draw.rect(gameDisplay, (int(color[0]), int(color[1]), int(color[2])), (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
+                if self.relative_x <= x*10 <= self.relative_x + self.relatives_on_screen and self.relative_y <= y*10 <= self.relative_y + self.relatives_on_screen:
+                    color = self.grid[x, y]
+                    color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
+                    pygame.draw.rect(gameDisplay, (int(color[0]), int(color[1]), int(color[2])), (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
     def _flood_fill(self, x, y, old_color, new_color):
         """The 4flood fill algorithm

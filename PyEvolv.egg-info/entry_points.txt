@@ -1,0 +1,3 @@
+[console_scripts]
+pyevolv = PyEvolv.cli:main
+

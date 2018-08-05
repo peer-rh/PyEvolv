@@ -107,7 +107,7 @@ class PyEvolv:
     def _generate_game(self):
         grid = np.load(self.grids_path + "/grid.npy")
         self.evolution = Evolution(self.constants["n_population"], grid, self.constants)
-        self.game = Game(self.width, self.height-50, grid, 
+        self.game = Game(self.width, self.height-50, 50, grid, 
                         self.evolution, 750, self.constants)
     
     def _generate_grid_creator(self):

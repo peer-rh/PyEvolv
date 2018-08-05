@@ -1,10 +1,10 @@
 import pygame
 import numpy as np
 import colorsys
-from PyEvolv.assets.font import FONT
+from PyEvolv.assets.font import FONT, get_font
 
 class Game:
-    def __init__(self,display_width, display_height, grid, evo, relatives_on_screen, constants):
+    def __init__(self,display_width, display_height, y, grid, evo, relatives_on_screen, constants):
         self.display_width = display_width
         self.display_height = display_height
         self.relative_x = 0
@@ -15,6 +15,7 @@ class Game:
         self.relative_x_change = 0
         self.relative_y_change = 0
         self.relatives_on_screen = relatives_on_screen
+        self.y = y
 
         pygame.init()
 
@@ -40,7 +41,7 @@ class Game:
         self._display_grid(self.map_surf)
         self._display_creature(self.map_surf, creatures)
         self._display_sidebar(self.sidebar_surf, len(creatures), creature_counts)
-
+        self._display_info()
 
         self.surf.blit(self.map_surf, (self.sidebar_width, 0))
         self.surf.blit(self.sidebar_surf, (0, 0))
@@ -85,7 +86,7 @@ class Game:
         pixels_per_relative = self.display_height / self.relatives_on_screen
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
-                if self.relative_x <= x*10 <= self.relative_x + self.relatives_on_screen and self.relative_y <= y*10 <= self.relative_y + self.relatives_on_screen:
+                if self.relative_x <= (x+1)*10 <= self.relative_x + self.relatives_on_screen + 10 and self.relative_y <= (y+1)*10 <= self.relative_y + self.relatives_on_screen + 10:
                     color = self.grid[x, y]
                     color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
                     pygame.draw.rect(gameDisplay, color, (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
@@ -131,3 +132,27 @@ class Game:
             pygame.draw.rect(gameDisplay, np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255,
                              (20, current_y, self.sidebar_width-40, pixels))
             current_y += pixels
+
+    def _display_info(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] >= self.sidebar_width and pos[1] > self.y:
+            relatives_per_pixel = self.relatives_on_screen / self.display_height
+            relative_mouse_x = (pos[0] - self.sidebar_width) * relatives_per_pixel
+            relative_mouse_y = (pos[1]-self.y) * relatives_per_pixel
+            tile_x = int(self.relative_x//10 + relative_mouse_x // 10)
+            tile_y = int(self.relative_y//10 + relative_mouse_y // 10)
+            info = [np.round(self.grid[tile_x, tile_y], 2), tile_x, tile_y]
+
+            pixels_per_relative = self.display_height / self.relatives_on_screen 
+
+            font = get_font(int(3 * pixels_per_relative)) # add to zoom
+
+            info_surf = pygame.Surface((pixels_per_relative*10, pixels_per_relative*10), pygame.SRCALPHA, 32)
+            h_txt = font.render("h: "+str(info[0][0]), False, (0,0,0))
+            s_txt = font.render("s: "+str(info[0][1]), False, (0,0,0))
+            v_txt = font.render("h: "+str(info[0][2]), False, (0,0,0))
+            info_surf.blit(h_txt, (pixels_per_relative, pixels_per_relative))
+            info_surf.blit(s_txt, (pixels_per_relative, pixels_per_relative*4))
+            info_surf.blit(v_txt, (pixels_per_relative, pixels_per_relative*7))
+            self.map_surf.blit(info_surf, (tile_x*10*pixels_per_relative - self.relative_x*pixels_per_relative, tile_y*10*pixels_per_relative - self.relative_y*pixels_per_relative))
+

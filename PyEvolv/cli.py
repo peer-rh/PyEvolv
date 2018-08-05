@@ -1,6 +1,7 @@
 from PyEvolv.main import PyEvolv
 import argparse
 import json
+from pathlib import Path
 
 def main():
 
@@ -35,8 +36,10 @@ def main():
     parser.add_argument("--n_creatures_per_species", type=int, default=2, help="The creatures spawned at the beggining with the same brain and food color and color")
     args = parser.parse_args()
 
-    if args.constants_file:
-        constants = json.load(open(args.constants_file))
+    if args.constants_file == "default":
+        constants = json.loads(open(str(Path.home()) + "/.pyevolv/constants.json").read())
+    elif args.constants_file:
+        constants = json.loads(open(args.constants_file).read())
     else:
         constants = {
             "relatives_creature_moves_per_step": args.relatives_creature_moves_per_step,
@@ -67,6 +70,6 @@ def main():
             "new_species_on_steps": args.new_species_on_steps,
             "n_creatures_per_species": args.n_creatures_per_species
         }
-
+    
     pe = PyEvolv(800, 650, constants)
     pe.run()

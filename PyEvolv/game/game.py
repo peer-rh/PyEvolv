@@ -113,10 +113,13 @@ class Game:
                 pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_1[0]*np.cos(sensor_1[1])), surf_size - pixels_per_relative * int(sensor_1[0]*np.sin(sensor_1[1]))))
                 pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_2[0]*np.cos(sensor_2[1])), surf_size - pixels_per_relative * int(sensor_2[0]*np.sin(sensor_2[1]))))
                 pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_3[0]*np.cos(sensor_3[1])), surf_size - pixels_per_relative * int(sensor_3[0]*np.sin(sensor_3[1]))))
-
+                
                 creature_surf = pygame.transform.rotate(creature_surf, rotation)
-                creature_surf.get_rect().center = (x,y)
-                gameDisplay.blit(creature_surf, ((x - self.relative_x)*pixels_per_relative - surf_size, (y - self.relative_y)*pixels_per_relative - surf_size))
+
+                dest_x = int(((x-self.relative_x)*pixels_per_relative) - (creature_surf.get_rect().width/2))
+                dest_y = int(((y-self.relative_y)*pixels_per_relative) - (creature_surf.get_rect().height/2))
+
+                gameDisplay.blit(creature_surf, (dest_x, dest_y))
 
     def _display_sidebar(self, gameDisplay, n_creatures, creature_counts):
         pop_size = self.myfont.render("Population: " + str(n_creatures), False, (0,0,0))

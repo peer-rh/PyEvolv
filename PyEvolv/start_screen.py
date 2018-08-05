@@ -2,13 +2,13 @@ import pygame
 from PyEvolv.assets.font import FONT
 
 class StartingScreen:
-    def __init__(self, height, width, bg_color, primary_color, primary_color_2):
+    def __init__(self, height, width, bg_color, primary_color, secondary_color):
         self.height = height
         self.width = width
 
         self.bg_color = bg_color
         self.primary_color = primary_color
-        self.primary_color_2 = primary_color_2
+        self.secondary_color = secondary_color
 
         self.font = FONT
         self.surf = pygame.Surface((self.width, self.height))

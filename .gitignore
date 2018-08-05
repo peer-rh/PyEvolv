@@ -3,7 +3,7 @@ __pycache__/
 */__pycache__/*
 .vs/*
 .vscode/*
-
+PyEvolv.egg-info/*
 .DS_Store
 .DS_Store?
 ._*

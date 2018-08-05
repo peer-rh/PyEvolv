@@ -7,7 +7,7 @@ from PyEvolv.grid_creator.Sidebar import Sidebar
 from PyEvolv.assets.font import FONT
 
 class GridCreator:
-    def __init__(self,display_width, display_height, grid, grids_path, relatives_on_screen, y=50, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_primary2=(0,0,255)):
+    def __init__(self,display_width, display_height, grid, grids_path, relatives_on_screen, y=50, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_secondary=(0,0,255)):
         """The GridCreator class helps with creation of grids for the Game
         
         Arguments:
@@ -19,7 +19,7 @@ class GridCreator:
         Keyword Arguments:
             sidebar_bg {tuple} -- The bg color of the sidebar in RGB (default: {(255,255,255)})
             sidebar_primary {tuple} -- The primary color of the sidebar in RGB (default: {(0,0,0)})
-            sidebar_primary2 {tuple} -- The second primary color of the sidebar in RGB (default: {(0,0,255)})
+            sidebar_secondary {tuple} -- The second primary color of the sidebar in RGB (default: {(0,0,255)})
         """
 
         self.display_width = display_width
@@ -40,7 +40,7 @@ class GridCreator:
 
         self.sidebar_width = display_width-display_height
         self.map_surf = pygame.Surface((display_height, display_height))
-        self.sidebar = Sidebar(self.sidebar_width, self.display_height, self.y, background_color=sidebar_bg, primary_color=sidebar_primary, primary_color_2=sidebar_primary2) 
+        self.sidebar = Sidebar(self.sidebar_width, self.display_height, self.y, background_color=sidebar_bg, primary_color=sidebar_primary, secondary_color=sidebar_secondary) 
         
         self.brush = [[0, 0, 1], 0, 0] # color hsv, size in tiles, rel_x, rel_y
         

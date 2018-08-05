@@ -7,7 +7,7 @@ from PyEvolv.assets.font import FONT
 import os
 
 class Sidebar:
-    def __init__(self, width, height, y, background_color=(255, 255, 255), primary_color=(0,0,0), primary_color_2=(0,0,255)):
+    def __init__(self, width, height, y, background_color=(255, 255, 255), primary_color=(0,0,0), secondary_color=(0,0,255)):
         """The Sidebar of the grid_creator
         
         Arguments:
@@ -17,7 +17,7 @@ class Sidebar:
         Keyword Arguments:
             background_color {tuple} -- The background color of the Sidebar (default: {(255, 255, 255)})
             primary_color {tuple} -- The primary color of the sidebar (default: {(0,0,0)})
-            primary_color_2 {tuple} -- The second primary color of the sidebar (default: {(0,0,255)})
+            secondary_color {tuple} -- The second primary color of the sidebar (default: {(0,0,255)})
         """
 
         self.width = width
@@ -25,7 +25,7 @@ class Sidebar:
         self.y = y
         self.background_color = background_color
         self.primary_color = primary_color
-        self.primary_color_2 = primary_color_2
+        self.secondary_color = secondary_color
         
         self.sidebar_surf = pygame.Surface((width, height))
         self.font = FONT
@@ -181,7 +181,7 @@ class Sidebar:
         self.water_img_off = np.copy(img)
         self.water_img_off[indexes_2[0], indexes_2[1]] = self.primary_color
         self.water_img_on = np.copy(img)
-        self.water_img_on[indexes_2[0], indexes_2[1]] = self.primary_color_2
+        self.water_img_on[indexes_2[0], indexes_2[1]] = self.secondary_color
 
         self.water_img_off = pygame.pixelcopy.make_surface(self.water_img_off.astype("int"))
         center = self.water_img_off.get_rect().center
@@ -206,7 +206,7 @@ class Sidebar:
         self.color_picker_img_off = np.copy(img)
         self.color_picker_img_off[indexes_2[0], indexes_2[1]] = self.primary_color
         self.color_picker_img_on = np.copy(img)
-        self.color_picker_img_on[indexes_2[0], indexes_2[1]] = self.primary_color_2
+        self.color_picker_img_on[indexes_2[0], indexes_2[1]] = self.secondary_color
 
         self.color_picker_img_off = pygame.pixelcopy.make_surface(self.color_picker_img_off.astype("int"))
         self.color_picker_img_on = pygame.pixelcopy.make_surface(self.color_picker_img_on.astype("int"))
@@ -226,7 +226,7 @@ class Sidebar:
         self.fill_img_off = np.copy(img)
         self.fill_img_off[indexes_2[0], indexes_2[1]] = self.primary_color
         self.fill_img_on = np.copy(img)
-        self.fill_img_on[indexes_2[0], indexes_2[1]] = self.primary_color_2
+        self.fill_img_on[indexes_2[0], indexes_2[1]] = self.secondary_color
 
         self.fill_img_off = pygame.pixelcopy.make_surface(self.fill_img_off.astype("int"))
         center = self.fill_img_off.get_rect().center

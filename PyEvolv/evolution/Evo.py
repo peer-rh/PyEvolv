@@ -1,7 +1,7 @@
 import numpy as np
 
-from PyEvolv.game.Creature import Creature
-from PyEvolv.game.Net import Net
+from PyEvolv.evolution.Creature import Creature
+from PyEvolv.evolution.Net import Net
 
 class Evolution():
     def __init__(self, n_population, grid, constants):

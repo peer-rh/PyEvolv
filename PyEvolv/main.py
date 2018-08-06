@@ -1,5 +1,5 @@
 import numpy as np
-from PyEvolv.game.Evo import Evolution
+from PyEvolv.evolution.Evo import Evolution
 from PyEvolv.game.game import Game
 from PyEvolv.grid_creator.grid_creator import GridCreator
 from PyEvolv.start_screen import StartingScreen

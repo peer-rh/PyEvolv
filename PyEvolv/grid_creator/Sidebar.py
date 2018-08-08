@@ -5,9 +5,10 @@ import cv2
 from PyEvolv.assets.icons import *
 from PyEvolv.assets.font import FONT
 import os
+from typing import List, Tuple
 
 class Sidebar:
-    def __init__(self, width, height, y, background_color=(255, 255, 255), primary_color=(0,0,0), secondary_color=(0,0,255)):
+    def __init__(self, width:int, height:int, y:int, background_color:List[int]=[255, 255, 255], primary_color:List[int]=[0, 0, 0], secondary_color:List[int]=[0, 0, 255]) -> None:
         """The Sidebar of the grid_creator
         
         Arguments:
@@ -43,9 +44,12 @@ class Sidebar:
         self.fill = False
         self._generate_fill_img()
 
+        self.text_field_selected = False
+        self.grid_name = ""
+        self.possible_name_keys: str = ".abcdefghijklmnopqrstuvwxyz1234567890_"
         self._make_save_load()
         
-    def next_frame(self):
+    def next_frame(self) -> None:
         """The next fame on the sidebar surface. It draws and displays everything
         """
 
@@ -55,7 +59,7 @@ class Sidebar:
         self._draw_tools()
         self._draw_save_load()
     
-    def update_slider(self, slider_1_val, slider_2_val):
+    def update_slider(self, slider_1_val: int, slider_2_val:int) -> None:
         """Function to update slider_vals
         
         Arguments:
@@ -68,7 +72,7 @@ class Sidebar:
         self.slider_2_val = slider_2_val
         self.slider_2_rgb = np.asarray(colorsys.hsv_to_rgb(self.slider_1_val/(self.width-60), self.slider_2_val/(self.width-40), 1)) * 255
 
-    def controller(self, event):
+    def controller(self, event:pygame.event) -> None:
         """The controller for the Sidebar
         
         Arguments:
@@ -89,18 +93,18 @@ class Sidebar:
                 if 100 <= mouse_pos[1]-self.y <= 132:
                     if 0 <= mouse_pos[0] - 20 <= 32:
 
-                        self.water = np.abs(self.water-1)
-                        self.color_picker = 0
-                        self.fill = 0
+                        self.water = not self.water
+                        self.color_picker = False
+                        self.fill = False
 
                     elif 0 <= mouse_pos[0] - (52+self.place_between_tools) <= 32:
-                        self.water = 0
-                        self.color_picker = np.abs(self.color_picker-1)
-                        self.fill = 0
+                        self.water = False
+                        self.color_picker = not self.color_picker
+                        self.fill = False
 
                     elif 0 <= mouse_pos[0] - (84+2*self.place_between_tools) <= 32:
-                        self.color_picker = 0
-                        self.fill = np.abs(self.fill-1)
+                        self.color_picker = False
+                        self.fill = not self.fill
                 
                 if self.text_field.collidepoint(event.pos[0], (event.pos[1]-self.y)):
                     self.text_field_selected = True
@@ -121,21 +125,21 @@ class Sidebar:
                     self.grid_name += event.unicode
                     self.grid_name_surf = self.font.render(self.grid_name, True, self.primary_color)
 
-    def _draw_slider_1(self):
+    def _draw_slider_1(self) -> None:
         """draw slider 1
         """
 
         pygame.draw.rect(self.sidebar_surf, self.primary_color, (20, 20, self.width-40, 20), 1)
         pygame.draw.rect(self.sidebar_surf, self.slider_1_rgb, (20+self.slider_1_val, 20, 20, 20))
 
-    def _draw_slider_2(self):
+    def _draw_slider_2(self) -> None:
         """draw slider 2
         """
 
         pygame.draw.rect(self.sidebar_surf, self.primary_color, (20, 60, self.width-40, 20), 1)
         pygame.draw.rect(self.sidebar_surf, self.slider_2_rgb, (20+self.slider_2_val, 60, 20, 20))
     
-    def _draw_tools(self):
+    def _draw_tools(self) -> None:
         """draw all the 3 tools, water, color picker and fill
         """
 
@@ -154,7 +158,7 @@ class Sidebar:
         else:
             self.sidebar_surf.blit(self.fill_img_off, (84+2*self.place_between_tools, 100))
     
-    def _draw_save_load(self):
+    def _draw_save_load(self) -> None:
         """draw the save and load section
         """
 
@@ -166,7 +170,7 @@ class Sidebar:
         self.sidebar_surf.blit(self.save_text, self.save_text_dest)
         self.sidebar_surf.blit(self.load_text, self.load_text_dest)
     
-    def _generate_water_img(self):
+    def _generate_water_img(self) -> None:
         """generate the water icon based on the primary colors
         """
 
@@ -192,7 +196,7 @@ class Sidebar:
         self.water_img_on = pygame.transform.rotate(self.water_img_on, -90)
         self.water_img_on.get_rect().center = center
 
-    def _generate_color_picker_img(self):
+    def _generate_color_picker_img(self) -> None:
         """generate the color picker icon based on the primary colors
         """
 
@@ -212,7 +216,7 @@ class Sidebar:
         self.color_picker_img_on = pygame.pixelcopy.make_surface(self.color_picker_img_on.astype("int"))
 
     
-    def _generate_fill_img(self):
+    def _generate_fill_img(self) -> None:
         """generate the fill bucket icon based on the primary colors
         """
 
@@ -240,23 +244,22 @@ class Sidebar:
         self.fill_img_on.get_rect().center = center
         self.fill_img_on = pygame.transform.flip(self.fill_img_on, True, False)
         
-    def _make_save_load(self):
+    def _make_save_load(self) -> None:
         """generate the text and rects for the save and load section
         """
 
         self.text_field = pygame.Rect(20, self.height-140, self.width-40, 50)
-        self.grid_name = "grid"
+        self.grid_name: str = "grid"
         self.grid_name_surf = self.font.render(self.grid_name, True, self.primary_color)
-        self.possible_name_keys = ".abcdefghijklmnopqrstuvwxyz1234567890_"
         self.text_field_selected = False
 
         self.button_size = (self.width - 60) / 2
-        self.save_button = pygame.Rect(20, self.height - 70, self.button_size, 50)
-        self.save_text = self.font.render("Save", False, self.background_color)
-        self.save_text_dest = (self.save_button.center[0] - self.save_text.get_rect().width/2, self.save_button.center[1] - self.save_text.get_rect().height/2)
+        self.save_button: pygame.Rect = pygame.Rect(20, self.height - 70, self.button_size, 50)
+        self.save_text: pygame.Surface = self.font.render("Save", False, self.background_color)
+        self.save_text_dest: Tuple[int, int] = (self.save_button.center[0] - self.save_text.get_rect().width/2, self.save_button.center[1] - self.save_text.get_rect().height/2)
         self.save = False
 
-        self.load_button = pygame.Rect(40+self.button_size, self.height - 70, self.button_size, 50)
-        self.load_text = self.font.render("Load", False, self.background_color)
-        self.load_text_dest = (self.load_button.center[0] - self.load_text.get_rect().width/2, self.load_button.center[1] - self.load_text.get_rect().height/2)
+        self.load_button: pygame.Rect = pygame.Rect(40+self.button_size, self.height - 70, self.button_size, 50)
+        self.load_text: pygame.Surface = self.font.render("Load", False, self.background_color)
+        self.load_text_dest: Tuple[int, int] = (self.load_button.center[0] - self.load_text.get_rect().width/2, self.load_button.center[1] - self.load_text.get_rect().height/2)
         self.load = False 

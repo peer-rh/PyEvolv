@@ -1,9 +1,10 @@
 import numpy as np
+from typing import List
 
 # Maybe upgrade to tensorflow or nupic or keras
 
 class Net:
-    def __init__(self, weights_1, weights_2, weights_3):
+    def __init__(self, weights_1: np.ndarray, weights_2: np.ndarray, weights_3: np.ndarray) -> None:
         """A simple 2 layer network with the tanh activation function
         
         Arguments:
@@ -16,7 +17,7 @@ class Net:
         self.weights_3 = weights_3
         self.hidden_state = np.zeros(self.weights_1.shape[1])
     
-    def __call__(self, sensor_1, sensor_2, sensor_3, rotation, food):
+    def __call__(self, sensor_1: List[float], sensor_2: List[float], sensor_3: List[float], rotation:int, food:float) -> np.ndarray:
         """The function to feed forward input through the Neural Net
         
         Arguments:

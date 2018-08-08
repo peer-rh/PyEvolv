@@ -7,9 +7,10 @@ from PyEvolv.assets.font import FONT
 import pygame
 from pathlib import Path
 import os
+from typing import Dict, List, Tuple
 
 class PyEvolv:
-    def __init__(self, width, height, constants, bg_color=(255,255,255), primary_color=(0,0,0), secondary_color=(0,0,255)):
+    def __init__(self, width:int, height:int, constants:Dict, bg_color:Tuple[int, int, int]=(255,255,255), primary_color:Tuple[int, int, int]=(0,0,0), secondary_color:Tuple[int, int, int]=(0,0,255)) -> None:
         self.width = width
         self.height = height
         self.constants = constants
@@ -27,11 +28,11 @@ class PyEvolv:
 
         self.back_txt = FONT.render("<BACK", False, self.primary_color)
 
-        self.game = None
-        self.evolution = None
-        self.grid_creator = None
+        self.game: Game = None
+        self.evolution: Evolution = None
+        self.grid_creator: GridCreator = None
 
-    def run(self):
+    def run(self) -> None:
         crashed = False
         while not crashed:
             events = pygame.event.get()
@@ -58,7 +59,7 @@ class PyEvolv:
             pygame.display.update()
 
 
-    def _next_frame(self):
+    def _next_frame(self) -> None:
         if self.current_env == "start_screen":
             self._starting_screen_bridge()
             self.starting_screen.next_frame()
@@ -87,7 +88,7 @@ class PyEvolv:
             self.grid_creator.next_frame()
             self.gameDisplay.blit(self.grid_creator.surf, (0, 50))
             
-    def _controller(self, event):
+    def _controller(self, event:pygame.event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.current_env != "start_screen" and 0 < event.pos[0] < self.back_txt.get_rect().width + 15 and 0 < event.pos[1] < 50:
                 self.current_env = "start_screen"
@@ -95,7 +96,7 @@ class PyEvolv:
                 self.game = None
                 self.evolution = None
     
-    def _starting_screen_bridge(self):
+    def _starting_screen_bridge(self) -> None:
         if self.starting_screen.game:
             self.current_env = "game"
             self.starting_screen.game = False
@@ -104,11 +105,10 @@ class PyEvolv:
             self.current_env = "grid_creator"
             self.starting_screen.grid_creator = False
     
-    def _generate_game(self):
+    def _generate_game(self) -> None:
         grid = np.load(self.grids_path + "/grid.npy")
         self.evolution = Evolution(self.constants["n_population"], grid, self.constants)
-        self.game = Game(self.width, self.height-50, 50, grid, 
-                        self.evolution, 750, self.constants)
+        self.game = Game(self.width, self.height-50, 50, grid, 750, self.constants)
     
-    def _generate_grid_creator(self):
+    def _generate_grid_creator(self) -> None:
         self.grid_creator = GridCreator(self.width, self.height-50, np.zeros((75, 75, 3)), self.grids_path+"/", 750, 50, self.bg_color, self.primary_color, self.secondary_color)

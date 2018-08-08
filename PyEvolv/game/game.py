@@ -2,15 +2,15 @@ import pygame
 import numpy as np
 import colorsys
 from PyEvolv.assets.font import FONT, get_font
+from typing import Dict, List
 
 class Game:
-    def __init__(self,display_width, display_height, y, grid, evo, relatives_on_screen, constants):
+    def __init__(self,display_width:int, display_height:int, y:int, grid:np.ndarray, relatives_on_screen:int, constants:Dict) -> None:
         self.display_width = display_width
         self.display_height = display_height
         self.relative_x = 0
         self.relative_y = 0
         self.grid = grid
-        self.evo = evo
         self.constants = constants
         self.relative_x_change = 0
         self.relative_y_change = 0
@@ -32,7 +32,7 @@ class Game:
         self.sidebar_surf = pygame.Surface((self.sidebar_width, display_height))
         self.step = 0
 
-    def next_frame(self, creatures, creature_counts):
+    def next_frame(self, creatures:List, creature_counts:Dict[int, int]) -> None:
         self.step += self.constants["evo_steps_per_frame"]
 
         self.sidebar_surf.fill((255, 255, 255))
@@ -50,14 +50,14 @@ class Game:
         self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
 
 
-    def controller(self, event):
+    def controller(self, event:pygame.event) -> None:
         self._grid_controller(event)
 
-    def update_grid(self, new_grid):
+    def update_grid(self, new_grid:np.ndarray) -> None:
         assert new_grid.shape == self.grid.shape
         self.grid = new_grid 
 
-    def _grid_controller(self, event):
+    def _grid_controller(self, event:pygame.event) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.relative_x_change = -3
@@ -82,7 +82,7 @@ class Game:
             elif event.button == 5:
                 self.relatives_on_screen = min(max(10, self.relatives_on_screen - 3), self.grid.shape[0]*10)
 
-    def _display_grid(self, gameDisplay):
+    def _display_grid(self, gameDisplay:pygame.Surface) -> None:
         pixels_per_relative = self.display_height / self.relatives_on_screen
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
@@ -91,7 +91,7 @@ class Game:
                     color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
                     pygame.draw.rect(gameDisplay, color, (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
-    def _display_creature(self, gameDisplay, creatures):
+    def _display_creature(self, gameDisplay:pygame.Surface, creatures:List) -> None:
         pixels_per_relative = self.display_height / self.relatives_on_screen
 
         for creature in creatures:
@@ -121,7 +121,7 @@ class Game:
 
                 gameDisplay.blit(creature_surf, (dest_x, dest_y))
 
-    def _display_sidebar(self, gameDisplay, n_creatures, creature_counts):
+    def _display_sidebar(self, gameDisplay: pygame.Surface, n_creatures: int, creature_counts: Dict[int, int]) -> None:
         pop_size = self.myfont.render("Population: " + str(n_creatures), False, (0,0,0))
         step = self.myfont.render("Step: "+str(self.step), False, (0,0,0))
         gameDisplay.blit(pop_size, (20, 20))
@@ -136,7 +136,7 @@ class Game:
                              (20, current_y, self.sidebar_width-40, pixels))
             current_y += pixels
 
-    def _display_info(self):
+    def _display_info(self) -> None:
         pos = pygame.mouse.get_pos()
         if pos[0] >= self.sidebar_width and pos[1] > self.y:
             relatives_per_pixel = self.relatives_on_screen / self.display_height

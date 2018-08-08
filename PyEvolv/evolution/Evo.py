@@ -1,10 +1,10 @@
 import numpy as np
-
 from PyEvolv.evolution.Creature import Creature
 from PyEvolv.evolution.Net import Net
+from typing import Dict, Tuple, List, Union
 
 class Evolution():
-    def __init__(self, n_population, grid, constants):
+    def __init__(self, n_population: int, grid: np.ndarray, constants: Dict) -> None:
         """The Evolution class. It handles Giving Information to the Creatures and then converting the Creatures state and handles the proccess of Natural Selection
         
         Arguments:
@@ -15,12 +15,12 @@ class Evolution():
         self.n_population = n_population
         self.grid = grid
         self.constants = constants
-        self.creatures_per_species_count = {}
+        self.creatures_per_species_count: Dict[Union[int, List[int, Tuple[float, float, float]]]] = {}
         self.non_water_region = np.where(self.grid[:,:,2] != 0)
         self.n_species = n_population
         self._create_population()
 
-    def next_step(self):
+    def next_step(self) -> None:
         """Handles Natural Selection, Feeding the Creatures brain and so on
         """
 
@@ -49,18 +49,22 @@ class Evolution():
         self.grid = np.maximum(0, np.minimum(1, self.grid))
 
 
-    def _create_population(self):
+    def _create_population(self) -> None:
         """The function for randomly creating the population
         """
 
-        self.creatures = []
+        self.creatures: List[Creature] = []
         for j in range(self.n_population//self.constants["n_creatures_per_species"]):
             weights_1 = np.random.randn(11+self.constants["n_hidden_units"], self.constants["n_hidden_units"])*0.1
             weights_2 = np.random.randn(self.constants["n_hidden_units"], self.constants["n_hidden_units"])*0.1
             weights_3 = np.random.randn(self.constants["n_hidden_units"], 4)*0.1
             net = Net(weights_1, weights_2, weights_3)
-            sensors = np.concatenate([np.random.randint(0, self.constants["max_sensor_length"], (3)),
+            sensors = np.concatenate([np.random.randint(0, self.constants["max_sensor_length"], 3),
                                         np.random.randint(0, 360, 3)])
+
+            sensor_1: Tuple[int, int] = tuple(sensors[:2])
+            sensor_2: Tuple[int, int] = tuple(sensors[2:4])
+            sensor_3: Tuple[int, int] = tuple(sensors[4:6])
             color = (np.random.uniform(0, 1), 1, 1)
             food_color = (np.random.uniform(0, 1), 1, 1)
             for _ in range(self.constants["n_creatures_per_species"]):
@@ -69,15 +73,19 @@ class Evolution():
                 y = self.non_water_region[1][i]*10
                 size = self.constants["starting_size"]
                 self.creatures_per_species_count[j] = [self.constants["n_creatures_per_species"], color]
-                self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, j, self.constants))
+                self.creatures.append(Creature(sensor_1, sensor_2, sensor_3, x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, j, self.constants))
 
-    def _new_species(self, species):
+    def _new_species(self, species:int) -> None:
         weights_1 = np.random.randn(11+self.constants["n_hidden_units"], self.constants["n_hidden_units"])*0.1
         weights_2 = np.random.randn(self.constants["n_hidden_units"], self.constants["n_hidden_units"])*0.1
         weights_3 = np.random.randn(self.constants["n_hidden_units"], 4)*0.1
         net = Net(weights_1, weights_2, weights_3)
         sensors = np.concatenate([np.random.randint(0, self.constants["max_sensor_length"], (3)),
                                     np.random.randint(0, 360, 3)])
+
+        sensor_1: Tuple[int, int] = tuple(sensors[:2])
+        sensor_2: Tuple[int, int] = tuple(sensors[2:4])
+        sensor_3: Tuple[int, int] = tuple(sensors[4:6])
 
         i = np.random.randint(0, len(self.non_water_region[0]))
         x = self.non_water_region[0][i]*10
@@ -86,10 +94,10 @@ class Evolution():
         food_color = (np.random.uniform(0, 1), 1, 1)
         size = self.constants["starting_size"]
         self.creatures_per_species_count[species] = [1, color]
-        self.creatures.append(Creature(sensors[:2], sensors[2:4], sensors[4:6], x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, species, self.constants))
+        self.creatures.append(Creature(sensor_1, sensor_2, sensor_3, x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, species, self.constants))
     
 
-    def _calculate_food_added(self, creature):
+    def _calculate_food_added(self, creature: Creature) -> float:
         """A function for calculation the amount of food added to an creature
         
         Arguments:
@@ -111,7 +119,7 @@ class Evolution():
             self.grid[int(x/10)-1, int(y/10)-1, 1] -= food_given
         return food_given
     
-    def _create_new_child(self, creature):
+    def _create_new_child(self, creature: Creature) -> None:
         """The function for creating a child with mutation
         
         Arguments:
@@ -127,7 +135,7 @@ class Evolution():
         modification_matrix_3 = np.random.uniform(self.constants["min_weight_mutation"], self.constants["max_weight_mutation"], (self.constants["n_hidden_units"], 4))
         modified_weights_3 = creature.net.weights_3 + modification_matrix_3
         
-        modified_food_color = [max(0, min(1, creature.food_color[0] + np.random.uniform(self.constants["min_color_change"], self.constants["max_color_change"]))), 1, 1]
+        modified_food_color = (max(0, min(1, creature.food_color[0] + np.random.uniform(self.constants["min_color_change"], self.constants["max_color_change"]))), 1, 1)
         modified_sensor1 = (min(self.constants["max_sensor_length"], creature.sensor_1[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
                             creature.sensor_1[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
         modified_sensor2 = (min(self.constants["max_sensor_length"], creature.sensor_2[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),

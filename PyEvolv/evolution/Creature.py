@@ -1,21 +1,23 @@
 import numpy as np
-
+from typing import Tuple, List, Dict
+from PyEvolv.evolution.Net import Net
 
 class Creature:
-    def __init__(self, sensor_1, sensor_2, sensor_3, relative_x, relative_y, max_x, max_y, color, food_color, size, net, species, constants):
+    def __init__(self, sensor_1:Tuple[int, int], sensor_2:Tuple[int, int], sensor_3:Tuple[int, int], relative_x:int, relative_y:int, max_x:int, max_y:int, color:Tuple[float, float, float], food_color:Tuple[float, float, float], 
+                 size:int, net:Net, species:int, constants:Dict) -> None:
         """The Creature class is the object for an creature in the evolution. It takes care of converting the input from the grid to movement,
            etc and it stores its relevant information
         
         Arguments:
-            sensor_1 {list} -- [len, degree]
-            sensor_2 {list} -- [len, angle]
-            sensor_3 {list} -- [len, angle]
+            sensor_1 {tuple} -- [len, degree]
+            sensor_2 {tuple} -- [len, angle]
+            sensor_3 {tuple} -- [len, angle]
             relative_x {int} -- the x position on the grid in relatives
             relative_y {int} -- thy y position on the grid in relatives
             max_x {int} -- the maximum x the creature can have
             max_y {int} -- the maximum y position the creature can have in relatives
-            color {list} -- [hue, saturation, value]
-            food_color {list} -- [hue, saturation, value]
+            color {tuple} -- [hue, saturation, value]
+            food_color {tuple} -- [hue, saturation, value]
             size {int} -- the starting size it has
             net {Net} -- the Net class which is the brain of the creature
             species {int} -- Its species value
@@ -50,14 +52,14 @@ class Creature:
                                    [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],
                                    [self.relative_x + self.sensor_3_x, self.relative_y + self.sensor_3_y]]
     
-    def __call__(self):
+    def __call__(self) -> Tuple[int, int, Tuple[float, float, float], Tuple[float, float, float], int, int, Tuple[int, int], Tuple[int, int], Tuple[int, int]]:
         """To get the information for drawing the creature easily
         
         Returns:
             relative_x {int} 
             relative_y {int} 
-            color {list} 
-            food_color {list} 
+            color {tuple} 
+            food_color {tuple} 
             size {int} 
             rotation {int} 
             sensor_1 {list} 
@@ -68,7 +70,7 @@ class Creature:
 
         return self.relative_x, self.relative_y, self.color, self.food_color, self.size, self.rotation, self.sensor_1, self.sensor_2, self.sensor_3
     
-    def next_step(self, food_added, sensor_1, sensor_2, sensor_3):
+    def next_step(self, food_added: float, sensor_1: List[float], sensor_2: List[float], sensor_3: List[float]) -> None:
         """The functionto let the brain think and let the creature update its value
         
         Arguments:
@@ -85,22 +87,22 @@ class Creature:
             self.food += food_added
             self.food -= self.constants["food_lost_on_step"]
 
-            out = self.net(sensor_1, sensor_2, sensor_3, self.rotation, self.food) # out is forward_backward, left_right, rotation
+            network_output = self.net(sensor_1, sensor_2, sensor_3, self.rotation, self.food) # network_output is forward_backward, left_right, rotation, get_child
             
-            self.relative_x = max(min(out[0]*self.constants["relatives_creature_moves_per_step"]+self.relative_x, self.max_x), 0)
-            self.relative_y = max(min(out[1]*self.constants["relatives_creature_moves_per_step"]+self.relative_y, self.max_y), 0)
-            self.rotation = (self.rotation + out[2]*self.constants["degrees_creature_rotates_per_step"]) % 360
+            self.relative_x = max(min(network_output[0]*self.constants["relatives_creature_moves_per_step"]+self.relative_x, self.max_x), 0)
+            self.relative_y = max(min(network_output[1]*self.constants["relatives_creature_moves_per_step"]+self.relative_y, self.max_y), 0)
+            self.rotation = (self.rotation + network_output[2]*self.constants["degrees_creature_rotates_per_step"]) % 360
             
             # TODO: Come up with better name
             self.grid_sensored_tiles = [[self.relative_x + self.sensor_1_x, self.relative_y + self.sensor_1_y],
                                     [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],
                                     [self.relative_x + self.sensor_3_x, self.relative_y + self.sensor_3_y]]
             
-            if self.food >= self.constants["food_lost_on_new_child"] + 2 and out[3] > 0:
+            if self.food >= self.constants["food_lost_on_new_child"] + 2 and network_output[3] > 0:
                 self.get_child = True
             self._update_size()
 
-    def _update_size(self):
+    def _update_size(self) -> None:
         """Simple size updater, which updates the size according to its current food
         """
 

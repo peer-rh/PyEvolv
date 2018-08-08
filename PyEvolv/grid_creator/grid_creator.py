@@ -2,12 +2,13 @@ import pygame
 import numpy as np
 import colorsys
 import time
+from typing import List, Union, Tuple
 import os
 from PyEvolv.grid_creator.Sidebar import Sidebar
 from PyEvolv.assets.font import FONT
 
 class GridCreator:
-    def __init__(self,display_width, display_height, grid, grids_path, relatives_on_screen, y=50, sidebar_bg=(255,255,255), sidebar_primary=(0,0,0), sidebar_secondary=(0,0,255)):
+    def __init__(self,display_width:int, display_height:int, grid:np.ndarray, grids_path:str, relatives_on_screen:int, y:int=50, sidebar_bg:Tuple[int, int, int]=(255,255,255), sidebar_primary:Tuple[int, int, int]=(0,0,0), sidebar_secondary: Tuple[int, int, int]=(0,0,255)) -> None:
         """The GridCreator class helps with creation of grids for the Game
         
         Arguments:
@@ -42,11 +43,11 @@ class GridCreator:
         self.map_surf = pygame.Surface((display_height, display_height))
         self.sidebar = Sidebar(self.sidebar_width, self.display_height, self.y, background_color=sidebar_bg, primary_color=sidebar_primary, secondary_color=sidebar_secondary) 
         
-        self.brush = [[0, 0, 1], 0, 0] # color hsv, size in tiles, rel_x, rel_y
+        self.brush:List[Union[List[float], float]] = [[0, 0, 1], 0, 0] # color hsv, size in tiles, rel_x, rel_y
         
 
 
-    def next_frame(self):
+    def next_frame(self) -> None:
         """The next frame. Handles events and displays everything
         """
             
@@ -63,12 +64,12 @@ class GridCreator:
         self.surf.blit(self.map_surf, (self.sidebar_width, 0))
         self.surf.blit(self.sidebar.sidebar_surf, (0, 0))
 
-    def controller(self, event):
+    def controller(self, event:pygame.event) -> None:
         self.sidebar.controller(event)
         self._grid_controller(event)
         self._brush_controller(event)
 
-    def _brush_controller(self, event):
+    def _brush_controller(self, event:pygame.event) -> None:
         """The controller for the brush
         
         Arguments:
@@ -88,7 +89,7 @@ class GridCreator:
                     if self.sidebar.color_picker:
                         self.sidebar.color_picker = False
                         self.brush[0] = self.grid[tile_x, tile_y]
-                        self.sidebar.update_slider(self.brush[0][0] * (self.sidebar_width-60), self.brush[0][1] * (self.sidebar_width-60))
+                        self.sidebar.update_slider(int(self.brush[0][0] * (self.sidebar_width-60)), int(self.brush[0][1] * (self.sidebar_width-60)))
                         self.grid[tile_x, tile_y] = self.brush[0]
                     
                     elif self.sidebar.fill:
@@ -105,7 +106,7 @@ class GridCreator:
                 self.brush[2] = int(self.relative_y//10 + relative_mouse_y // 10)
                 self.grid[self.brush[1], self.brush[2]] = self.brush[0]
 
-    def _sidebar_controller(self):
+    def _sidebar_controller(self) -> None:
         """Connection betwenn Sidebar Class and GridCreator Class
         """
 
@@ -131,7 +132,7 @@ class GridCreator:
             except:
                 pass
                 
-    def _grid_controller(self, event):
+    def _grid_controller(self, event:pygame.event) -> None:
         """The Grid Controller to zoom and move through the grid
         
         Arguments:
@@ -163,7 +164,7 @@ class GridCreator:
                 self.relatives_on_screen = min(max(10, self.relatives_on_screen - 6), self.grid.shape[0]*10)
 
 
-    def _display_grid(self, gameDisplay):
+    def _display_grid(self, gameDisplay:pygame.Surface) -> None:
         """Displays the grid on the gameDisplay
         
         Arguments:
@@ -178,12 +179,12 @@ class GridCreator:
                     color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
                     pygame.draw.rect(gameDisplay, (int(color[0]), int(color[1]), int(color[2])), (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
-    def _flood_fill(self, x, y, old_color, new_color):
+    def _flood_fill(self, x:int, y:int, old_color:List[float], new_color:List[float]) -> None:
         """The 4flood fill algorithm
         
         Arguments:
             x {int} -- the x coordinate of the tile where the fill algo starts on
-            y {int} -- the y coordinate of the tile where the fill algo start on
+            y {int} -- the y coordinate of the tile where the fill algo starts on
             old_color {list} -- The old color of the grid tile in HSV
             new_color {list} -- The new color with which the the flooded fields should be colored in HSV
         """

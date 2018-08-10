@@ -1,6 +1,7 @@
 from PyEvolv.main import PyEvolv
 import argparse
 import json
+import numpy as np
 from pathlib import Path
 
 def main():
@@ -31,7 +32,8 @@ def main():
                 "food_lost_on_water": (float, "The amount a creature looses when it walks over water"),
                 "evo_steps_per_frame": (int, "The amount of steps per frame"),
                 "new_species_on_steps": (bool, "If random species should be generated each step"),
-                "n_creatures_per_species": (int, "The creatures spawned at the beggining with the same brain and food color and color")
+                "n_creatures_per_species": (int, "The creatures spawned at the beggining with the same brain and food color and color"),
+                "seed": (int, "The random seed")
             }
     parser = argparse.ArgumentParser(description='PyEvolv CLI')
     parser.add_argument('--constants_file', type=str, default="default", help="A json file with the constants")
@@ -50,6 +52,9 @@ def main():
     for i in kwargs:
         if eval("args."+i) != None:
             constants[i] = eval("args."+i)
+    
+    if constants["seed"] != 0:
+        np.random.seed(constants["seed"])
     
     pe = PyEvolv(args.width, args.height, constants)
     pe.run()

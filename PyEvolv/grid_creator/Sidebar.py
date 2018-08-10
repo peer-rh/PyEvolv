@@ -8,7 +8,8 @@ import os
 from typing import List, Tuple
 
 class Sidebar:
-    def __init__(self, width:int, height:int, y:int, background_color:List[int]=[255, 255, 255], primary_color:List[int]=[0, 0, 0], secondary_color:List[int]=[0, 0, 255]) -> None:
+    def __init__(self, width:int, height:int, y:int, background_color:Tuple[int, int, int]=(255, 255, 255), primary_color:Tuple[int, int, int]=(0, 0, 0), 
+                 secondary_color:Tuple[int, int, int]=(0, 0, 255)) -> None:
         """The Sidebar of the grid_creator
         
         Arguments:

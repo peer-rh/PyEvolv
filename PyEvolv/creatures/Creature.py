@@ -46,13 +46,14 @@ class Creature:
         self.rotation = 0
         self.food = self.constants["starting_food"]
         self.steps = 0
+        self.type:str = ""
 
         self.size_per_food = self.size/self.food
         self.grid_sensored_tiles = [[self.relative_x + self.sensor_1_x, self.relative_y + self.sensor_1_y],
                                    [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],
                                    [self.relative_x + self.sensor_3_x, self.relative_y + self.sensor_3_y]]
     
-    def __call__(self) -> Tuple[int, int, Tuple[float, float, float], Tuple[float, float, float], int, int, Tuple[int, int], Tuple[int, int], Tuple[int, int]]:
+    def __call__(self) -> Tuple[str, int, int, Tuple[float, float, float], Tuple[float, float, float], int, int, Tuple[int, int], Tuple[int, int], Tuple[int, int]]:
         """To get the information for drawing the creature easily
         
         Returns:
@@ -66,9 +67,9 @@ class Creature:
             sensor_2 {list} 
             sensor_3 {list} 
 
-       """
-
-        return self.relative_x, self.relative_y, self.color, self.food_color, self.size, self.rotation, self.sensor_1, self.sensor_2, self.sensor_3
+        """
+        
+        return self.type, self.relative_x, self.relative_y, self.color, self.food_color, self.size, self.rotation, self.sensor_1, self.sensor_2, self.sensor_3
     
     def next_step(self, food_added: float, sensor_1: List[float], sensor_2: List[float], sensor_3: List[float]) -> None:
         """The functionto let the brain think and let the creature update its value

@@ -11,3 +11,6 @@ PyEvolv.egg-info/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+.mypy_cache/*
+dist/*
+build/*

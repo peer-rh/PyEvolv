@@ -76,7 +76,7 @@ class PyEvolv:
                 self.evolution.next_step()
             
             self.game.update_grid(self.evolution.grid)
-            self.game.next_frame(self.evolution.creatures, self.evolution.creatures_per_species_count)
+            self.game.next_frame(self.evolution.herbivores, self.evolution.carnivores, self.evolution.creatures_per_species_count)
             self.gameDisplay.blit(self.game.surf, (0, 50))
 
         elif self.current_env == "grid_creator":
@@ -107,7 +107,7 @@ class PyEvolv:
     
     def _generate_game(self) -> None:
         grid = np.load(self.grids_path + "/grid.npy")
-        self.evolution = Evolution(self.constants["n_population"], grid, self.constants)
+        self.evolution = Evolution(grid, self.constants)
         self.game = Game(self.width, self.height-50, 50, grid, 750, self.constants)
     
     def _generate_grid_creator(self) -> None:

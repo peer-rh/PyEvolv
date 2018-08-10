@@ -1,7 +1,6 @@
 import pygame
 import numpy as np
 import colorsys
-import time
 from typing import List, Union, Tuple
 import os
 from PyEvolv.grid_creator.Sidebar import Sidebar
@@ -164,7 +163,7 @@ class GridCreator:
                 self.relatives_on_screen = min(max(10, self.relatives_on_screen - 6), self.grid.shape[0]*10)
 
 
-    def _display_grid(self, gameDisplay:pygame.Surface) -> None:
+    def _display_grid(self, gameDisplay:pygame.Surface) -> None: # TODO: make that only loops through the shown tiles and not checks every 
         """Displays the grid on the gameDisplay
         
         Arguments:

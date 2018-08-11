@@ -33,12 +33,6 @@ class Creature:
         self.max_y = max_y
         self.species = species
         self.sensor_1, self.sensor_2, self.sensor_3 = sensor_1, sensor_2, sensor_3
-        self.sensor_1_x = int(sensor_1[0]*np.cos(sensor_1[1]))
-        self.sensor_1_y = int(sensor_1[0]*np.sin(sensor_1[1]))
-        self.sensor_2_x = int(sensor_2[0]*np.cos(sensor_2[1]))
-        self.sensor_2_y = int(sensor_2[0]*np.sin(sensor_2[1]))
-        self.sensor_3_x = int(sensor_3[0]*np.cos(sensor_3[1]))
-        self.sensor_3_y = int(sensor_3[0]*np.sin(sensor_3[1]))
         self.constants = constants
         self.dead = False
 
@@ -47,11 +41,10 @@ class Creature:
         self.food = self.constants["starting_food"]
         self.steps = 0
         self.type:str = ""
+        self.eat = True
 
         self.size_per_food = self.size/self.food
-        self.grid_sensored_tiles = [[self.relative_x + self.sensor_1_x, self.relative_y + self.sensor_1_y],
-                                   [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],
-                                   [self.relative_x + self.sensor_3_x, self.relative_y + self.sensor_3_y]]
+        self._update_sensor_xy()
     
     def __call__(self) -> Tuple[str, int, int, Tuple[float, float, float], Tuple[float, float, float], int, int, Tuple[int, int], Tuple[int, int], Tuple[int, int]]:
         """To get the information for drawing the creature easily
@@ -90,16 +83,19 @@ class Creature:
 
             network_output = self.net(sensor_1, sensor_2, sensor_3, self.rotation, self.food) # network_output is forward_backward, left_right, rotation, get_child
             
-            self.relative_x = max(min(network_output[0]*self.constants["relatives_creature_moves_per_step"]+self.relative_x, self.max_x), 0)
-            self.relative_y = max(min(network_output[1]*self.constants["relatives_creature_moves_per_step"]+self.relative_y, self.max_y), 0)
-            self.rotation = (self.rotation + network_output[2]*self.constants["degrees_creature_rotates_per_step"]) % 360
+            self.eat = network_output[3] > 0
+            self.rotation = (self.rotation + network_output[1]*self.constants["degrees_creature_rotates_per_step"]) % 360
+            location_change = (network_output[0]+1)/2*self.constants["relatives_creature_moves_per_step"]
+            x_change = location_change * np.cos(self.rotation)
+            y_change = location_change * np.sin(self.rotation)
+ 
+            self.relative_x = max(min(x_change+self.relative_x, self.max_x), 0)
+            self.relative_y = max(min(y_change+self.relative_y, self.max_y), 0)
             
             # TODO: Come up with better name
-            self.grid_sensored_tiles = [[self.relative_x + self.sensor_1_x, self.relative_y + self.sensor_1_y],
-                                    [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],
-                                    [self.relative_x + self.sensor_3_x, self.relative_y + self.sensor_3_y]]
+            self._update_sensor_xy()
             
-            if self.food >= self.constants["food_lost_on_new_child"] + 2 and network_output[3] > 0:
+            if self.food >= self.constants["food_lost_on_new_child"] + 2 and network_output[2] > 0:
                 self.get_child = True
             self._update_size()
 
@@ -108,6 +104,18 @@ class Creature:
         """
 
         self.size = max(0, min(self.constants["max_creature_size"], int(self.food*self.size_per_food)))
+    
+    def _update_sensor_xy(self):
+        self.sensor_1_x = int(self.sensor_1[0]*np.cos(self.sensor_1[1]+self.rotation))
+        self.sensor_1_y = int(self.sensor_1[0]*np.sin(self.sensor_1[1]+self.rotation))
+        self.sensor_2_x = int(self.sensor_2[0]*np.cos(self.sensor_2[1]+self.rotation))
+        self.sensor_2_y = int(self.sensor_2[0]*np.sin(self.sensor_2[1]+self.rotation))
+        self.sensor_3_x = int(self.sensor_3[0]*np.cos(self.sensor_3[1]+self.rotation))
+        self.sensor_3_y = int(self.sensor_3[0]*np.sin(self.sensor_3[1]+self.rotation))
+
+        self.grid_sensored_tiles = [[self.relative_x + self.sensor_1_x, self.relative_y + self.sensor_1_y],
+                                   [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],
+                                   [self.relative_x + self.sensor_3_x, self.relative_y + self.sensor_3_y]]
 
 
 

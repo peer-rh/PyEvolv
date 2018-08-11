@@ -1,4 +1,5 @@
 from PyEvolv.main import PyEvolv
+from PyEvolv.constants.constants import Constants
 import argparse
 import json
 import numpy as np
@@ -55,6 +56,8 @@ def main():
     
     if constants["seed"] != 0:
         np.random.seed(constants["seed"])
+    
+    constants = Constants(constants)
     
     pe = PyEvolv(args.width, args.height, constants)
     pe.run()

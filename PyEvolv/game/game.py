@@ -2,7 +2,38 @@ import pygame
 import numpy as np
 import colorsys
 from PyEvolv.assets.font import FONT, get_font
-from typing import Dict, List
+from typing import Dict, List, Tuple
+
+def display_creature(f):
+    def inner(self, gameDisplay: pygame.Surface, creatures: List) -> None:
+        pixels_per_relative = self.display_height / self.relatives_on_screen
+
+        for creature in creatures:
+            type, x, y, color, food_color, size, rotation, sensor_1, sensor_2, sensor_3 = creature()
+            if self.relative_x <= x <= self.relative_x + self.relatives_on_screen and self.relative_y <= y <= self.relative_y + self.relatives_on_screen:
+                size = int(size*pixels_per_relative)
+                surf_size = max(size, int(self.constants["max_sensor_length"]*pixels_per_relative))
+
+                creature_surf = pygame.Surface((2*surf_size, 2*surf_size), pygame.SRCALPHA)
+                creature_surf = creature_surf.convert_alpha()
+
+                color = tuple(round(i * 255) for i in colorsys.hsv_to_rgb(color[0], color[1], color[2]))
+                food_color = tuple(round(i * 255) for i in colorsys.hsv_to_rgb(food_color[0], food_color[1], food_color[2]))
+
+                f(creature_surf, color, food_color, size, surf_size)
+
+                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_1[0]*np.cos(sensor_1[1])), surf_size - pixels_per_relative * int(sensor_1[0]*np.sin(sensor_1[1]))))
+                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_2[0]*np.cos(sensor_2[1])), surf_size - pixels_per_relative * int(sensor_2[0]*np.sin(sensor_2[1]))))
+                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_3[0]*np.cos(sensor_3[1])), surf_size - pixels_per_relative * int(sensor_3[0]*np.sin(sensor_3[1]))))
+                
+                creature_surf = pygame.transform.rotate(creature_surf, rotation)
+
+                dest_x = int(((x-self.relative_x)*pixels_per_relative) - (creature_surf.get_rect().width/2))
+                dest_y = int(((y-self.relative_y)*pixels_per_relative) - (creature_surf.get_rect().height/2))
+
+                gameDisplay.blit(creature_surf, (dest_x, dest_y))
+    return inner
+
 
 class Game:
     def __init__(self,display_width:int, display_height:int, y:int, grid:np.ndarray, relatives_on_screen:int, constants:Dict) -> None: # TODO: add primary color and secondary color, ..
@@ -32,7 +63,7 @@ class Game:
         self.sidebar_surf = pygame.Surface((self.sidebar_width, display_height))
         self.step = 0
 
-    def next_frame(self, herbivores:List, carnivores:List, creature_counts:Dict[int, int]) -> None:
+    def next_frame(self, herbivores:List, carnivores:List, creature_counts:Dict[int, int], creature_locs:Dict) -> None:
         self.step += self.constants["evo_steps_per_frame"]
 
         self.sidebar_surf.fill((255, 255, 255))
@@ -42,7 +73,7 @@ class Game:
         self._display_herbivores(self.map_surf, herbivores)
         self._display_carnivores(self.map_surf, carnivores)
         self._display_sidebar(self.sidebar_surf, len(herbivores), len(carnivores), creature_counts)
-        self._display_info()
+        self._display_info(creature_locs)
 
         self.surf.blit(self.map_surf, (self.sidebar_width, 0))
         self.surf.blit(self.sidebar_surf, (0, 0))
@@ -92,65 +123,18 @@ class Game:
                     color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
                     pygame.draw.rect(gameDisplay, color, (x*10*pixels_per_relative - self.relative_x*pixels_per_relative, y*10*pixels_per_relative - self.relative_y*pixels_per_relative, pixels_per_relative*10, pixels_per_relative*10))
     
-    def _display_herbivores(self, gameDisplay:pygame.Surface, herbivores:List) -> None:
-        pixels_per_relative = self.display_height / self.relatives_on_screen
+    @display_creature
+    def _display_herbivores(creature_surf: pygame.Surface, color:List[int], food_color:List[int], size:int, surf_size:int) -> None:
+        pygame.draw.circle(creature_surf, color, (surf_size, surf_size), size)
+        pygame.draw.circle(creature_surf, food_color, (surf_size, surf_size- size//2), size//2)
 
-        for herbivor in herbivores:
-            type, x, y, color, food_color, size, rotation, sensor_1, sensor_2, sensor_3 = herbivor()
-            if self.relative_x <= x <= self.relative_x + self.relatives_on_screen and self.relative_y <= y <= self.relative_y + self.relatives_on_screen:
-                size = int(size*pixels_per_relative)
-                surf_size = max(size, int(self.constants["max_sensor_length"]*pixels_per_relative))
 
-                creature_surf = pygame.Surface((2*surf_size, 2*surf_size), pygame.SRCALPHA, 32)
-                creature_surf = creature_surf.convert_alpha()
+    @display_creature
+    def _display_carnivores(creature_surf: pygame.Surface, color:List[int], food_color:List[int], size:int, surf_size:int) -> None:
+        pygame.draw.rect(creature_surf, color, (surf_size-size, surf_size-size, size*2, size*2))
+        pygame.draw.circle(creature_surf, food_color, (surf_size, surf_size-size//2), size//2)
 
-            
-                color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
-                food_color = np.asarray(colorsys.hsv_to_rgb(food_color[0], food_color[1], food_color[2]))*255 
-
-                pygame.draw.circle(creature_surf, color, (surf_size, surf_size), size)
-                pygame.draw.circle(creature_surf, food_color, (surf_size, surf_size- size//2), size//2)
-
-                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_1[0]*np.cos(sensor_1[1])), surf_size - pixels_per_relative * int(sensor_1[0]*np.sin(sensor_1[1]))))
-                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_2[0]*np.cos(sensor_2[1])), surf_size - pixels_per_relative * int(sensor_2[0]*np.sin(sensor_2[1]))))
-                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_3[0]*np.cos(sensor_3[1])), surf_size - pixels_per_relative * int(sensor_3[0]*np.sin(sensor_3[1]))))
                 
-                creature_surf = pygame.transform.rotate(creature_surf, rotation)
-
-                dest_x = int(((x-self.relative_x)*pixels_per_relative) - (creature_surf.get_rect().width/2))
-                dest_y = int(((y-self.relative_y)*pixels_per_relative) - (creature_surf.get_rect().height/2))
-
-                gameDisplay.blit(creature_surf, (dest_x, dest_y))
-
-    def _display_carnivores(self, gameDisplay:pygame.Surface, carnivores:List) -> None: # TODO: Add Decorator 
-        pixels_per_relative = self.display_height / self.relatives_on_screen
-
-        for carnivore in carnivores:
-            type, x, y, color, food_color, size, rotation, sensor_1, sensor_2, sensor_3 = carnivore()
-            if self.relative_x <= x <= self.relative_x + self.relatives_on_screen and self.relative_y <= y <= self.relative_y + self.relatives_on_screen:
-                size = int(size*pixels_per_relative)
-                surf_size = max(size, int(self.constants["max_sensor_length"]*pixels_per_relative))
-
-                creature_surf = pygame.Surface((2*surf_size, 2*surf_size), pygame.SRCALPHA, 32)
-                creature_surf = creature_surf.convert_alpha()
-
-            
-                color = np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255
-                food_color = np.asarray(colorsys.hsv_to_rgb(food_color[0], food_color[1], food_color[2]))*255 
-
-                pygame.draw.rect(creature_surf, color, (surf_size-size, surf_size-size, size*2, size*2))
-                pygame.draw.circle(creature_surf, food_color, (surf_size, surf_size-size//2), size//2)
-
-                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_1[0]*np.cos(sensor_1[1])), surf_size - pixels_per_relative * int(sensor_1[0]*np.sin(sensor_1[1]))))
-                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_2[0]*np.cos(sensor_2[1])), surf_size - pixels_per_relative * int(sensor_2[0]*np.sin(sensor_2[1]))))
-                pygame.draw.line(creature_surf, (0,0,0), (surf_size, surf_size), (surf_size - pixels_per_relative * int(sensor_3[0]*np.cos(sensor_3[1])), surf_size - pixels_per_relative * int(sensor_3[0]*np.sin(sensor_3[1]))))
-                
-                creature_surf = pygame.transform.rotate(creature_surf, rotation)
-
-                dest_x = int(((x-self.relative_x)*pixels_per_relative) - (creature_surf.get_rect().width/2))
-                dest_y = int(((y-self.relative_y)*pixels_per_relative) - (creature_surf.get_rect().height/2))
-
-                gameDisplay.blit(creature_surf, (dest_x, dest_y))
     
 
     def _display_sidebar(self, gameDisplay: pygame.Surface, n_herbivores: int, n_carnivores: int, creature_counts: Dict[int, int]) -> None:
@@ -167,11 +151,11 @@ class Game:
             count = i[0]
             color = i[1]
             pixels = (self.display_height-160) * (count/n_creatures)
-            pygame.draw.rect(gameDisplay, np.asarray(colorsys.hsv_to_rgb(color[0], color[1], color[2]))*255,
+            pygame.draw.rect(gameDisplay,  tuple(round(i * 255) for i in colorsys.hsv_to_rgb(color[0], color[1], color[2])),
                              (20, current_y, self.sidebar_width-40, pixels))
             current_y += pixels
 
-    def _display_info(self) -> None:
+    def _display_info(self, creature_locs) -> None:
         pos = pygame.mouse.get_pos()
         if pos[0] >= self.sidebar_width and pos[1] > self.y:
             relatives_per_pixel = self.relatives_on_screen / self.display_height

@@ -19,7 +19,7 @@ class Evolution():
         self.herbivore_chance: float = self.n_herbivores / (self.n_herbivores+self.n_carnivores)
         self.grid = grid
         self.constants = constants
-        self.creatures_per_species_count: Dict[Union[int, List[int, Tuple[float, float, float]]]] = {}
+        self.creatures_per_species_count: Dict[int, List[int, Tuple[float, float, float]]] = {}
         self.non_water_region: np.ndarray = np.where(self.grid[:,:,2] != 0)
         self.n_species = self.n_herbivores // self.constants["n_creatures_per_species"] + self.n_carnivores // self.constants["n_creatures_per_species"]
         self.creature_locations: Dict[Creature, Tuple[int, int]] = {}
@@ -28,7 +28,6 @@ class Evolution():
     def next_step(self) -> None:
         """Handles Natural Selection, Feeding the Creatures brain and so on
         """
-
         if np.random.randint(0, 10) < 3 and self.constants["new_species_on_steps"]:
             self.n_species += 1
             if np.random.uniform() < self.herbivore_chance:
@@ -45,7 +44,10 @@ class Evolution():
                 self.herbivores.remove(herbivore)
                 del self.creature_locations[herbivore]
             else:
-                food_added = self._calculate_food_added_herbivore(herbivore)
+                if herbivore.eat:
+                    food_added = self._calculate_food_added_herbivore(herbivore)
+                else:
+                    food_added = 0
 
                 sensor_1 = self.grid[min(self.grid.shape[0]-1, int(herbivore.grid_sensored_tiles[0][0]/10)), min(self.grid.shape[1]-1, int(herbivore.grid_sensored_tiles[0][1]/10))]
                 sensor_2 = self.grid[min(self.grid.shape[0]-1, int(herbivore.grid_sensored_tiles[1][0]/10)), min(self.grid.shape[1]-1, int(herbivore.grid_sensored_tiles[1][1]/10))]
@@ -56,8 +58,11 @@ class Evolution():
 
         for herbivore in self.herbivores:
             if herbivore.get_child and len(self.herbivores) + len(self.carnivores) < self.constants["max_population"]:
-                self._create_new_child(herbivore)
+                self._create_new_child([herbivore2 for herbivore2 in self.herbivores if np.abs(herbivore2.relative_x-herbivore.relative_x) < self.constants["get_child_radius"] 
+                                                                                  and np.abs(herbivore2.relative_y-herbivore.relative_y) < self.constants["get_child_radius"]
+                                                                                  and herbivore2.get_child])
 
+        # TODO: add changes from herbivores
         for carnivore in self.carnivores:
             if carnivore.dead:
                 self.creatures_per_species_count[carnivore.species][0] -= 1
@@ -66,7 +71,8 @@ class Evolution():
                 self.carnivores.remove(carnivore)
                 del self.creature_locations[carnivore]
             else:
-                food_added = self._calculate_food_added_carnivore(carnivore)
+                if carnivore.eat:
+                    food_added = self._calculate_food_added_carnivore(carnivore)
 
                 sensor_1, sensor_2, sensor_3 = self._get_sensor_data_carnivore(carnivore.grid_sensored_tiles)
                 
@@ -75,8 +81,9 @@ class Evolution():
 
         for carnivore in self.carnivores:
             if carnivore.get_child and len(self.herbivores) + len(self.carnivores) < self.constants["max_population"]:
-                self._create_new_child(carnivore)
-        
+                self._create_new_child([carnivore2 for carnivore2 in self.carnivores if np.abs(carnivore2.relative_x-carnivore.relative_x) < self.constants["get_child_radius"] 
+                                                                                  and np.abs(carnivore2.relative_y-carnivore.relative_y) < self.constants["get_child_radius"]
+                                                                                  and carnivore2.get_child])        
         self.grid[self.non_water_region[0], self.non_water_region[1], 1] += self.constants["food_added_per_step"]
         self.grid = np.maximum(0, np.minimum(1, self.grid))
 
@@ -93,16 +100,19 @@ class Evolution():
             self._new_species("Carnivore", j + self.n_herbivores//self.constants["n_creatures_per_species"])
     
     def _new_species(self, type:str, species:int) -> None:
-        weights_1 = np.random.randn(11+self.constants["n_hidden_units"], self.constants["n_hidden_units"])*0.1
-        weights_2 = np.random.randn(self.constants["n_hidden_units"], self.constants["n_hidden_units"])*0.1
-        weights_3 = np.random.randn(self.constants["n_hidden_units"], 4)*0.1
-        net = Net(weights_1, weights_2, weights_3)
-        sensors = np.concatenate([np.random.randint(0, self.constants["max_sensor_length"], (3)),
-                                    np.random.randint(0, 360, 3)])
+        net = Net(self.constants["n_hidden_units"])
+        if self.constants["constant_sensors"]:
+            sensor_1: Tuple[int, int, int] = (0,0) # sensor by mouth
+            sensor_2: Tuple[int, int, int] = (min(self.constants["max_sensor_length"], 10), 20)
+            sensor_3: Tuple[int, int, int] = (min(self.constants["max_sensor_length"], 10), 340)
 
-        sensor_1: Tuple[int, int] = tuple(sensors[:2])
-        sensor_2: Tuple[int, int] = tuple(sensors[2:4])
-        sensor_3: Tuple[int, int] = tuple(sensors[4:6])
+        else:
+            sensors = np.concatenate([np.random.randint(0, self.constants["max_sensor_length"], (3)),
+                                        np.random.randint(0, 360, 3)])
+
+            sensor_1: Tuple[int, int] = tuple(sensors[:2])
+            sensor_2: Tuple[int, int] = tuple(sensors[2:4])
+            sensor_3: Tuple[int, int] = tuple(sensors[4:6])
 
         for _ in range(self.constants["n_creatures_per_species"]):
             i = np.random.randint(0, len(self.non_water_region[0]))
@@ -155,8 +165,12 @@ class Evolution():
 
         x, y = carnivore.relative_x, carnivore.relative_y
         locs = np.asarray(list(self.creature_locations.values()))
-        if self.constants["carnivore_eat_range"] == "size":
-            eat_range: int = carnivore.size
+        if type(self.constants["carnivore_eat_range"]) == str:
+            try:
+                eat_range: int = eval(self.constants["carnivore_eat_range"])
+            except Exception as e:
+                print(e)
+                
         else:
             eat_range = self.constants["carnivore_eat_range"]
         creatures_to_eat_from: np.ndarray = np.asarray(list(self.creature_locations.keys()))[np.where((locs[:, 0] < x + eat_range)
@@ -169,45 +183,45 @@ class Evolution():
             creature_returns: List[float] = [max(-self.constants["max_food_loss"], self.constants["max_food_differnce_for_no_loss"] - np.abs(carnivore.food_color[0] - creature[0][0]))*min(1,creature[1]) for creature in creature_info]
             best_creature_index = np.argmax(creature_returns)
             best_creature_return = creature_returns[best_creature_index]
-            print(best_creature_return)
             creatures_to_eat_from[best_creature_index].food = max(0, -best_creature_return) # so that creature wont get more food by loss of creature
         else:
             best_creature_return = 0
 
         return best_creature_return
     
-    def _create_new_child(self, creature: Creature) -> None:
-        """The function for creating a child with mutation
+    def _create_new_child(self, creatures: List[Creature]) -> None:
+        for creature in creatures:
+            creature.food -= self.constants["food_lost_on_new_child"]
+            creature.get_child = False
         
-        Arguments:
-            creature {Creature} -- The parent creature
-        """
+        modified_food_color = (max(0, min(1, np.mean([creature.food_color[0] for creature in creatures]) + np.random.uniform(self.constants["min_color_change"], self.constants["max_color_change"]))), 1, 1)
+        if self.constants["constant_sensors"]:
+            modified_sensor1, modified_sensor2, modified_sensor3 = creature.sensor_1, creature.sensor_2, creature.sensor_3
+        else:
+            creature = np.random.choice(creatures)
+            modified_sensor1 = (min(self.constants["max_sensor_length"], creature.sensor_1[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
+                                creature.sensor_1[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
+            
+            creature = np.random.choice(creatures)
+            modified_sensor2 = (min(self.constants["max_sensor_length"], creature.sensor_2[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
+                                creature.sensor_2[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
+            
+            creature = np.random.choice(creatures)
+            modified_sensor3 = (min(self.constants["max_sensor_length"], creature.sensor_3[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
+                                creature.sensor_3[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
+        
+        net = Net(self.constants["n_hidden_units"], [creature.net for creature in creatures], self.constants["min_weight_mutation"], self.constants["max_weight_mutation"])
 
-        self.creatures_per_species_count[creature.species][0] += 1
-        creature.food -= self.constants["food_lost_on_new_child"]
-        modification_matrix_1 = np.random.uniform(self.constants["min_weight_mutation"], self.constants["max_weight_mutation"], (11+self.constants["n_hidden_units"], self.constants["n_hidden_units"]))
-        modified_weights_1 = creature.net.weights_1 + modification_matrix_1
-        modification_matrix_2 = np.random.uniform(self.constants["min_weight_mutation"], self.constants["max_weight_mutation"], (self.constants["n_hidden_units"], self.constants["n_hidden_units"]))
-        modified_weights_2 = creature.net.weights_2 + modification_matrix_2
-        modification_matrix_3 = np.random.uniform(self.constants["min_weight_mutation"], self.constants["max_weight_mutation"], (self.constants["n_hidden_units"], 4))
-        modified_weights_3 = creature.net.weights_3 + modification_matrix_3
-        
-        modified_food_color = (max(0, min(1, creature.food_color[0] + np.random.uniform(self.constants["min_color_change"], self.constants["max_color_change"]))), 1, 1)
-        modified_sensor1 = (min(self.constants["max_sensor_length"], creature.sensor_1[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
-                            creature.sensor_1[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
-        modified_sensor2 = (min(self.constants["max_sensor_length"], creature.sensor_2[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
-                            creature.sensor_2[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
-        modified_sensor3 = (min(self.constants["max_sensor_length"], creature.sensor_3[0]+np.random.randint(self.constants["min_sensor_len_mutation"], self.constants["max_sensor_angle_mutation"])),
-                            creature.sensor_3[1] + np.random.randint(self.constants["min_sensor_angle_mutation"], self.constants["max_sensor_angle_mutation"]) % 360)
-        
-        net = Net(modified_weights_1, modified_weights_2, modified_weights_3)
-        if creature.type == "Herbivore":
+        creature = np.random.choice(creatures)
+        self.creatures_per_species_count[creature.species][0] += 1 # TODO: find other way to do that
+
+        if creatures[0].type == "Herbivore":
             new_creature: Union[Herbivore, Creature] = Herbivore(modified_sensor1, modified_sensor2, modified_sensor3, 
                                 creature.relative_x, creature.relative_y, 10*self.grid.shape[0], 10*self.grid.shape[1], creature.color, 
                                 modified_food_color, 8, net, creature.species, self.constants)
             self.herbivores.append(new_creature)
 
-        elif creature.type == "Carnivore":
+        elif creatures[0].type == "Carnivore":
             new_creature: Union[Herbivore, Creature] = Carnivore(modified_sensor1, modified_sensor2, modified_sensor3, 
                                 creature.relative_x, creature.relative_y, 10*self.grid.shape[0], 10*self.grid.shape[1], creature.color, 
                                 modified_food_color, 8, net, creature.species, self.constants)

@@ -2,6 +2,9 @@ import cv2
 import os
 import PyEvolv
 
+
+LOGO_PATH = os.path.join(PyEvolv.__path__[0], 'assets', 'logo.png')
+
 path = os.path.join(PyEvolv.__path__[0], 'assets', 'water.png')
 WATER_IMG = cv2.imread(path, cv2.IMREAD_UNCHANGED)
 

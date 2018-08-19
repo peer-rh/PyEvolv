@@ -23,7 +23,7 @@ class Evolution():
         self.non_water_region: np.ndarray = np.where(self.grid[:,:,2] != 0)
         self.n_species = self.n_herbivores // self.constants["n_creatures_per_species"] + self.n_carnivores // self.constants["n_creatures_per_species"]
         self.creature_locations: Dict[Creature, Tuple[int, int]] = {}
-        self._create_population()
+        self._create_population() # This is a test
 
     def next_step(self) -> None:
         """Handles Natural Selection, Feeding the Creatures brain and so on

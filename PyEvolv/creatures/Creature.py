@@ -86,6 +86,7 @@ class Creature:
             self.eat = network_output[3] > 0
             self.rotation = (self.rotation + network_output[1]*self.constants["degrees_creature_rotates_per_step"]) % 360
             location_change = (network_output[0]+1)/2*self.constants["relatives_creature_moves_per_step"]
+            print(location_change)
             x_change = location_change * np.cos(self.rotation)
             y_change = location_change * np.sin(self.rotation)
  

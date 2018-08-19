@@ -14,9 +14,9 @@ class Net:
         """
         if len(parents) == 0:
             self.weights = {
-                "w1": np.random.randn(n_hidden_units+11, n_hidden_units)*0.3,
-                "w2": np.random.randn(n_hidden_units, n_hidden_units)*0.3,
-                "w3": np.random.randn(n_hidden_units, 4)*0.2 # forward, rotation, get_child, eat
+                "w1": np.random.randn(n_hidden_units+11, n_hidden_units)*0.5,
+                "w2": np.random.randn(n_hidden_units, n_hidden_units)*0.5,
+                "w3": np.random.randn(n_hidden_units, 4)*0.5 # forward, rotation, get_child, eat
             }
         else: # crossover and mutation
             self.weights = {

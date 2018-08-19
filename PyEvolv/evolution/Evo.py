@@ -28,7 +28,14 @@ class Evolution():
     def next_step(self) -> None:
         """Handles Natural Selection, Feeding the Creatures brain and so on
         """
-        if np.random.randint(0, 10) < 3 and self.constants["new_species_on_steps"]:
+        if self.constants["new_species_on_steps"] == 1:
+            if np.random.randint(0,10) < 3:
+                self.n_species += 1
+                if np.random.uniform() < self.herbivore_chance:
+                    self._new_species("Herbivore", self.n_species)
+                else:
+                    self._new_species("Carnivore", self.n_species)
+        elif self.constants["new_species_on_steps"] > len(self.herbivores) + len(self.carnivores) and self.constants["new_species_on_steps"] != 0:
             self.n_species += 1
             if np.random.uniform() < self.herbivore_chance:
                 self._new_species("Herbivore", self.n_species)
@@ -61,6 +68,7 @@ class Evolution():
                 self._create_new_child([herbivore2 for herbivore2 in self.herbivores if np.abs(herbivore2.relative_x-herbivore.relative_x) < self.constants["get_child_radius"] 
                                                                                   and np.abs(herbivore2.relative_y-herbivore.relative_y) < self.constants["get_child_radius"]
                                                                                   and herbivore2.get_child])
+                print("get_child")
 
         # TODO: add changes from herbivores
         for carnivore in self.carnivores:
@@ -103,8 +111,8 @@ class Evolution():
         net = Net(self.constants["n_hidden_units"])
         if self.constants["constant_sensors"]:
             sensor_1: Tuple[int, int, int] = (0,0) # sensor by mouth
-            sensor_2: Tuple[int, int, int] = (min(self.constants["max_sensor_length"], 10), 20)
-            sensor_3: Tuple[int, int, int] = (min(self.constants["max_sensor_length"], 10), 340)
+            sensor_2: Tuple[int, int, int] = (min(self.constants["max_sensor_length"], 20), 20)
+            sensor_3: Tuple[int, int, int] = (min(self.constants["max_sensor_length"], 20), 340)
 
         else:
             sensors = np.concatenate([np.random.randint(0, self.constants["max_sensor_length"], (3)),

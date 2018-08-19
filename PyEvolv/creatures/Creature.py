@@ -86,13 +86,12 @@ class Creature:
             self.eat = network_output[3] > 0
             self.rotation = (self.rotation + network_output[1]*self.constants["degrees_creature_rotates_per_step"]) % 360
             location_change = (network_output[0]+1)/2*self.constants["relatives_creature_moves_per_step"]
-            x_change = location_change * np.cos(self.rotation)
-            y_change = location_change * np.sin(self.rotation)
+            x_change = location_change * np.cos(np.radians(360-self.rotation))
+            y_change = location_change * np.sin(np.radians(360-self.rotation)) # 360 - self.rotation because so no conflict with rotation in game object 
  
             self.relative_x = max(min(x_change+self.relative_x, self.max_x), 0)
             self.relative_y = max(min(y_change+self.relative_y, self.max_y), 0)
             
-            # TODO: Come up with better name
             self._update_sensor_xy()
             
             if self.food >= self.constants["food_lost_on_new_child"] + 2 and network_output[2] > 0:
@@ -106,12 +105,12 @@ class Creature:
         self.size = max(0, min(self.constants["max_creature_size"], int(self.food*self.size_per_food)))
     
     def _update_sensor_xy(self):
-        self.sensor_1_x = int(self.sensor_1[0]*np.cos(self.sensor_1[1]+self.rotation))
-        self.sensor_1_y = int(self.sensor_1[0]*np.sin(self.sensor_1[1]+self.rotation))
-        self.sensor_2_x = int(self.sensor_2[0]*np.cos(self.sensor_2[1]+self.rotation))
-        self.sensor_2_y = int(self.sensor_2[0]*np.sin(self.sensor_2[1]+self.rotation))
-        self.sensor_3_x = int(self.sensor_3[0]*np.cos(self.sensor_3[1]+self.rotation))
-        self.sensor_3_y = int(self.sensor_3[0]*np.sin(self.sensor_3[1]+self.rotation))
+        self.sensor_1_x = int(self.sensor_1[0]*np.cos(np.radians(self.sensor_1[1]+self.rotation)))
+        self.sensor_1_y = int(self.sensor_1[0]*np.sin(np.radians(self.sensor_1[1]+self.rotation)))
+        self.sensor_2_x = int(self.sensor_2[0]*np.cos(np.radians(self.sensor_2[1]+self.rotation)))
+        self.sensor_2_y = int(self.sensor_2[0]*np.sin(np.radians(self.sensor_2[1]+self.rotation)))
+        self.sensor_3_x = int(self.sensor_3[0]*np.cos(np.radians(self.sensor_3[1]+self.rotation)))
+        self.sensor_3_y = int(self.sensor_3[0]*np.sin(np.radians(self.sensor_3[1]+self.rotation)))
 
         self.grid_sensored_tiles = [[self.relative_x + self.sensor_1_x, self.relative_y + self.sensor_1_y],
                                    [self.relative_x + self.sensor_2_x, self.relative_y + self.sensor_2_y],

@@ -61,14 +61,13 @@ class Evolution():
                 sensor_3 = self.grid[min(self.grid.shape[0]-1, int(herbivore.grid_sensored_tiles[2][0]/10)), min(self.grid.shape[1]-1, int(herbivore.grid_sensored_tiles[2][1]/10))]
 
                 herbivore.next_step(food_added, sensor_1, sensor_2, sensor_3)
-                self.creature_locations[herbivore] = (int(herbivore.relative_x), int(herbivore.relative_y))
+                self.creature_locations[herbivore] = (int(herbivore.relative_x), int(herbivore.relative_y), herbivore.size)
 
         for herbivore in self.herbivores:
             if herbivore.get_child and len(self.herbivores) + len(self.carnivores) < self.constants["max_population"]:
                 self._create_new_child([herbivore2 for herbivore2 in self.herbivores if np.abs(herbivore2.relative_x-herbivore.relative_x) < self.constants["get_child_radius"] 
                                                                                   and np.abs(herbivore2.relative_y-herbivore.relative_y) < self.constants["get_child_radius"]
                                                                                   and herbivore2.get_child])
-                print("get_child")
 
         # TODO: add changes from herbivores
         for carnivore in self.carnivores:
@@ -85,7 +84,7 @@ class Evolution():
                 sensor_1, sensor_2, sensor_3 = self._get_sensor_data_carnivore(carnivore.grid_sensored_tiles)
                 
                 carnivore.next_step(food_added, sensor_1, sensor_2, sensor_3)
-                self.creature_locations[carnivore] = (int(carnivore.relative_x), int(carnivore.relative_y))
+                self.creature_locations[carnivore] = (int(carnivore.relative_x), int(carnivore.relative_y), carnivore.size)
 
         for carnivore in self.carnivores:
             if carnivore.get_child and len(self.herbivores) + len(self.carnivores) < self.constants["max_population"]:
@@ -137,7 +136,7 @@ class Evolution():
                 creature: Union[Herbivore, Creature] = Carnivore(sensor_1, sensor_2, sensor_3, x, y, self.grid.shape[0]*10, self.grid.shape[1]*10, color, food_color, size, net, species, self.constants)
                 self.carnivores.append(creature)
 
-            self.creature_locations[creature] = (x, y)    
+            self.creature_locations[creature] = (x, y, size)    
 
     def _calculate_food_added_herbivore(self, creature: Herbivore) -> float:
         """A function for calculation the amount of food added to an creature
@@ -177,8 +176,7 @@ class Evolution():
             try:
                 eat_range: int = eval(self.constants["carnivore_eat_range"])
             except Exception as e:
-                print(e)
-                
+                print(e)                
         else:
             eat_range = self.constants["carnivore_eat_range"]
         creatures_to_eat_from: np.ndarray = np.asarray(list(self.creature_locations.keys()))[np.where((locs[:, 0] < x + eat_range)

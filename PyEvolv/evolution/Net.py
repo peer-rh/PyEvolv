@@ -27,6 +27,10 @@ class Net:
             self.weights = {key: val+np.random.uniform(min_weight_mutation, max_weight_mutation, val.shape) for key, val in self.weights.items()}
         self.hidden_state = np.zeros(n_hidden_units)
 
+        # for visualizing nets
+        self.inputs = np.zeros(n_hidden_units+11)
+        self.out = np.array([0,0,0,0])
+
     
     def __call__(self, sensor_1: List[float], sensor_2: List[float], sensor_3: List[float], rotation:int, food:float) -> np.ndarray:
         """The function to feed forward input through the Neural Net
@@ -43,8 +47,10 @@ class Net:
         """
 
         inputs = np.array([*self.hidden_state, *sensor_1, *sensor_2, *sensor_3, rotation, food])
+        self.inputs = inputs
         out = np.tanh(np.dot(inputs, self.weights["w1"]))
         out = np.tanh(np.dot(out, self.weights["w2"]))
         self.hidden_state = out
         out = np.tanh(np.dot(out, self.weights["w3"]))
+        self.out = out
         return out

@@ -71,6 +71,7 @@ class Game:
         self.map_surf = pygame.Surface((display_height, display_height))
         self.sidebar_surf = pygame.Surface((self.sidebar_width, display_height))
         self.step = 0
+        self.creature_info = None
 
     def next_frame(self, herbivores:List, carnivores:List, creature_counts:Dict[int, int], creature_locs:Dict) -> None:
         self.step += self.constants["evo_steps_per_frame"]
@@ -91,14 +92,14 @@ class Game:
         self.relative_y = min(max(0, self.relative_y + self.relative_y_change), 10*self.grid.shape[1] - self.relatives_on_screen)
 
 
-    def controller(self, event:pygame.event) -> None:
-        self._grid_controller(event)
+    def controller(self, event:pygame.event, creature_locs: Dict) -> None:
+        self._grid_controller(event, creature_locs)
 
     def update_grid(self, new_grid:np.ndarray) -> None:
         assert new_grid.shape == self.grid.shape
         self.grid = new_grid 
 
-    def _grid_controller(self, event:pygame.event) -> None:
+    def _grid_controller(self, event:pygame.event, creature_locs:Dict) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.relative_x_change = -3
@@ -118,6 +119,20 @@ class Game:
                 self.relative_y_change = 0
     
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                locs_arr = np.asarray(list(creature_locs.values()))
+                relatives_per_pixel = self.relatives_on_screen / self.display_height
+                relative_mouse_x = self.relative_x + (int(event.pos[0]) - self.sidebar_width) * relatives_per_pixel
+                relative_mouse_y = self.relative_y + (int(event.pos[1]) - self.y) * relatives_per_pixel
+                creature_infos = np.where((relative_mouse_x < locs_arr[:, 0] + 10 * relatives_per_pixel)
+                                        & (relative_mouse_x > locs_arr[:, 0] - 10 * relatives_per_pixel)
+                                        & (relative_mouse_y < locs_arr[:, 1] + 10 * relatives_per_pixel)
+                                        & (relative_mouse_y > locs_arr[:, 1] - 10 * relatives_per_pixel))
+                if len(creature_infos[0]) == 0:
+                    self.creature_info = None
+                elif len(creature_infos[0]) > 0:
+                    self.creature_info = list(creature_locs.keys())[creature_infos[0][0]]
+
             if event.button == 4:
                 self.relatives_on_screen = min(max(10, self.relatives_on_screen + 3), self.grid.shape[0]*10)
             elif event.button == 5:
@@ -148,22 +163,43 @@ class Game:
     
 
     def _display_sidebar(self, gameDisplay: pygame.Surface, n_herbivores: int, n_carnivores: int, creature_counts: Dict[int, int]) -> None:
-        herb_pop_size = self.myfont.render("Herbivores: " + str(n_herbivores), False, (0,0,0))
-        carn_pop_size = self.myfont.render("Carnivores: " + str(n_carnivores), False, (0,0,0))
-        step = self.myfont.render("Step: "+str(self.step), False, (0,0,0))
-        gameDisplay.blit(herb_pop_size, (20, 20))
-        gameDisplay.blit(carn_pop_size, (20, 60))
-        gameDisplay.blit(step, (20, 100))
+        if self.creature_info == None:
+            herb_pop_size = self.myfont.render("Herbivores: " + str(n_herbivores), False, (0,0,0))
+            carn_pop_size = self.myfont.render("Carnivores: " + str(n_carnivores), False, (0,0,0))
+            step = self.myfont.render("Step: "+str(self.step), False, (0,0,0))
+            gameDisplay.blit(herb_pop_size, (20, 20))
+            gameDisplay.blit(carn_pop_size, (20, 60))
+            gameDisplay.blit(step, (20, 100))
 
-        n_creatures = n_herbivores + n_carnivores
-        current_y = 140
-        for i in creature_counts.values():
-            count = i[0]
-            color = i[1]
-            pixels = (self.display_height-160) * (count/n_creatures)
-            pygame.draw.rect(gameDisplay,  tuple(round(i * 255) for i in colorsys.hsv_to_rgb(color[0], color[1], color[2])),
-                             (20, current_y, self.sidebar_width-40, pixels))
-            current_y += pixels
+            n_creatures = n_herbivores + n_carnivores
+            current_y = 140
+            for i in creature_counts.values():
+                count = i[0]
+                color = i[1]
+                pixels = (self.display_height-160) * (count/n_creatures)
+                pygame.draw.rect(gameDisplay,  tuple(round(i * 255) for i in colorsys.hsv_to_rgb(color[0], color[1], color[2])),
+                                (20, current_y, self.sidebar_width-40, pixels))
+                current_y += pixels
+
+        else:
+            species = self.myfont.render("Species: " + str(self.creature_info.species), False, (0,0,0))
+            gameDisplay.blit(species, (20, 20))
+            net_in = self.creature_info.net.inputs
+            net_out = self.creature_info.net.out
+            font_size = int((self.display_height - 80) / len(net_in))
+            font = get_font(font_size)
+            for i, val in enumerate(net_in):
+                val_txt = font.render(str(np.around(val, 2)), False, (255,255,255))
+                val_txt_dest_x = ((self.sidebar_width-60)/4+20) - val_txt.get_rect().width / 2
+                pygame.draw.rect(gameDisplay, (0,0,0), (20, 60 + i*font_size, (self.sidebar_width-60)/2, font_size+2))
+                gameDisplay.blit(val_txt, (val_txt_dest_x, 60 + i*font_size))
+
+            out_beginning_y = int(((self.display_height - 80) / 2) - len(net_out)/2*font_size)
+            for i, val in enumerate(net_out):
+                val_txt = font.render(str(np.around(val, 2)), False, (255,255,255))
+                val_txt_dest_x = ((self.sidebar_width-60)/4+20) - val_txt.get_rect().width / 2 + (self.sidebar_width-60)/2 + 20
+                pygame.draw.rect(gameDisplay, (0,0,0), (40 + (self.sidebar_width-60)/2, out_beginning_y + 60 + i*(font_size+1), (self.sidebar_width-60)/2, font_size+2))
+                gameDisplay.blit(val_txt, (val_txt_dest_x, 60 + out_beginning_y + i*font_size))
 
     def _display_info(self, creature_locs) -> None:
         pos = pygame.mouse.get_pos()
@@ -187,4 +223,3 @@ class Game:
             info_surf.blit(s_txt, (pixels_per_relative, pixels_per_relative*4))
             info_surf.blit(v_txt, (pixels_per_relative, pixels_per_relative*7))
             self.map_surf.blit(info_surf, (tile_x*10*pixels_per_relative - self.relative_x*pixels_per_relative, tile_y*10*pixels_per_relative - self.relative_y*pixels_per_relative))
-

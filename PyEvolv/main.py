@@ -46,14 +46,14 @@ class PyEvolv:
                     self.starting_screen.starting_screen_controller(event)
                 elif self.current_env == "game":
                     try:
-                        self.game.controller(event)
-                    except:
-                        pass
+                        self.game.controller(event, self.evolution.creature_locations)
+                    except Exception as e:
+                        raise e
                 elif self.current_env == "grid_creator":
                     try:
                         self.grid_creator.controller(event)
-                    except:
-                        pass
+                    except Exception as e:
+                        raise e
                 
             
             self._next_frame()
